@@ -21,8 +21,8 @@ tg.router
     .when(c(['газ']), 'startControllerGas')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
     .when(c('тройка'), 'startTroika')
-    .when(c('96433078'), 'startPodorojnik')
-    .when(c('63628750'), 'startTransponder')
+    .when(c('podorojnik'), 'startPodorojnik')
+    .when(c('transponder'), 'startTransponder')
 
     
     .otherwise('controller');
@@ -94,14 +94,14 @@ tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
     $.waitForRequest(($) => {
         var nums = $.message.text.replace(/[^0-9]/g, '');
-        if(nums.length<=10){$.routeTo('тройка') }
+        if(nums.length=10){$.routeTo('тройка') }
         else
         {
         var spbNum= nums.substring(0,8) 
-        if(spbNum =='96433078'){$.routeTo('96433078') +$.sendMessage(spbNum)}
+        if(spbNum =='96433078'){$.routeTo('podorojnik') +$.sendMessage(spbNum)}
             else{
-                if(spbNum =='63628750'){$.routeTo('63628750')+$.sendMessage(spbNum)}
-                else{$.sendMessage('Ой, все! Некорректная карта, я так не умею'+spbNum)}
+                if(spbNum =='63628750'){$.routeTo('transponder')}
+                else{$.sendMessage('Ой, все! Некорректная карта, я так не умею '+spbNum)}
             }
         }
         });
