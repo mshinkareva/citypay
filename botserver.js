@@ -16,6 +16,10 @@ var yamoney = require('./yamoney')(users, getTokenCallback, log);
 tg.router
     .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
     .when(c(['auth', 'авторизов']), 'authController')
+    .when(c(['транспорт']), 'startControllerTransport')
+    .when(c(['свет', 'электроэнергия', 'электричество']), 'startControllerElectro')
+    .when(c(['газ']), 'startControllerGas')
+    .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
     .otherwise('controller');
 
 
@@ -53,9 +57,24 @@ function getTokenCallback (user) {
         'Теперь можете воспользоваться платными функциями.');
 }
 
-tg.controller('startController2', function ($) {
+tg.controller('startControllerGas', function ($) {
     $.sendMessage("Сейчас оплатим за газ.");
+    
 });
+
+
+tg.controller('startControllerElectro', function ($) {
+    $.sendMessage("Сейчас оплатим за электричество.");
+});
+
+
+tg.controller('startControllerElectro', function ($) {
+    $.sendMessage("Сейчас пополним баланс транспортной карты. Кстати, а какая карта?");
+});
+
+
+
+
 
 tg.controller('controller', function($) {
     users.get($.user.id, $.user, function (err, user) {
