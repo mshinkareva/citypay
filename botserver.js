@@ -24,14 +24,21 @@ tg.router
 
 
 function setMenu($, text) {
-    $.runMenu({
-        message: text,
-        'транспорт' : function () { $.routeTo('транспорт') },
-        'электричество': function () { $.routeTo('свет') },
-        'мобильная связь': function () { $.routeTo('мобильный') },
-        'газ'   : function () { $.routeTo('газ') },
-        'История': function () { $.routeTo('historyController') },
-        'О боте' : function () { $.routeTo('start') }
+    users.get($.user.id, $.user, function (err, user){
+        $.runMenu({
+            message: text,
+            'транспорт' : {
+                message: 'За какой транспорт вы хотите заплатить?',
+                'Подорожник' : function () { user.INN = ''; $.routeTo('оплата') },
+                'Транспондер': function () { user.INN = ''; $.routeTo('оплата') },
+                'Тройка'     : function () { user.INN = ''; $.routeTo('оплата') },
+            },
+            'электричество': function () { $.routeTo('свет') },
+            'мобильная связь': function () { $.routeTo('мобильный') },
+            'газ'   : function () { $.routeTo('газ') },
+            'История': function () { $.routeTo('historyController') },
+            'О боте' : function () { $.routeTo('start') }
+        });
     });
 }
 
