@@ -86,10 +86,11 @@ tg.controller('startControllerElectro', function ($) {
 
 
 tg.controller('startControllerTransport', function ($) {
-    $.sendMessage("Сейчас пополним баланс транспортной карты. Кстати, а какая карта?");
+    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
     $.waitForRequest(($) => {
-             $.sendMessage('Hi ' + $.message.text + '!')
-        });
+            if($.isNumeric()){$.sendMessage +' цифры'}
+            else{$.sendMessage +'ОЙ, ВСЕ!'}
+                     });
     });
 
 
