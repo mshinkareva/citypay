@@ -50,8 +50,9 @@ var helpBotText =
 
 tg.controller('startController', function ($) {
     users.get($.user.id, $.user, function (err, user) {
-        $.sendMessage(util.format(helpBotText, (user.accessToken ? '' :
+        setMenu($, util.format(helpBotText, (user.accessToken ? '' :
             'Для авторизации в Яндекс.Деньгах воспользуйтесь командой /auth.')));
+            
     });
 });
 
