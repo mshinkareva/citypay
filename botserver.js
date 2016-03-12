@@ -60,6 +60,7 @@ function getTokenCallback (user) {
 tg.controller('startControllerGas', function ($) {
     $.sendMessage("Сейчас оплатим за газ.");
     
+
 });
 
 
@@ -68,11 +69,24 @@ tg.controller('startControllerElectro', function ($) {
 });
 
 
-tg.controller('startControllerElectro', function ($) {
+tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты. Кстати, а какая карта?");
-});
+   
+    $.waitForRequest(($)=> {
+         tg.for('/reg', ($) => {
+             $.sendMessage('Отлично, просто четко сфотографируй подорожник, а я разберусь дальше сам')
+             
+  });
+    }); )};    
 
 
+    
+
+
+tg.controller('startControllerPhone', function($) {
+    
+        $.sendMessage('Минуточку, сейчас пополним баланс мобильного, просто отправьте контакт (ваш, либо любого другого человека из списка контактов)');
+    });
 
 
 
