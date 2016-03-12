@@ -114,7 +114,7 @@ tg.controller('startControllerPhone', function($) {
 });
 
 tg.controller('тройка', function($) {
-            $.sendMessage('это тройка');
+            $.sendMessage('это тройка');})
 
 tg.controller('96433078', function($) {
             $.sendMessage('это подорожник');
