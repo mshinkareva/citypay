@@ -1,0 +1,1 @@
+QR-Code:ST00011|Name=ÇÀÎ "Ãàçïðîì ìåæðåãèîíãàç Ñàíêò-Ïåòåðáóðã"|PersonalAcc=40702810055230176256|BankName=Ñåâåðî-Çàïàäíûé áàíê (ÎÀÎ) "Ñáåðáàíêà Ðîññèè"|BIC=044030653|CorrespAcc=30101810500000000653|PayeeINN=7838016481|KPP=783801001|ServiceName=01|PersAcc=704057720|TaxPaytKind=33|Sum=11721|PaymPeriod=0216|PayeeUser=4|DocDate=2201160237|SubjectRF=78|
