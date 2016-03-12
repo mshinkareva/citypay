@@ -116,7 +116,7 @@ tg.controller('startTroika', function($) {
             $.sendMessage('это тройка');})
 
 tg.controller('startPodorojnik', function($) {
-            $.sendMessage('это подорожник');
+            $.sendMessage('это же подорожник');
     
 });
 
