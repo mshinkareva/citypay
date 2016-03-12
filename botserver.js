@@ -99,7 +99,7 @@ tg.controller('startControllerTransport', function ($) {
         else
         {
         var spbNum= nums.substring(0,8) 
-        if(spbNum =='96433078'){$.routeTo('96433078') $.sendMessage(spbNum)}
+        if(spbNum =='96433078'){$.routeTo('96433078') +$.sendMessage(spbNum)}
             else{
                 if(spbNum =='63628750'){$.routeTo('63628750')}
                 else{$.sendMessage('Ой, все! Некорректная карта, я так не умею'+spbNum)}
