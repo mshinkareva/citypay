@@ -1,14 +1,16 @@
 {
-  "name": "PhoneDepoBot",
+  "name": "PayCityBot",
   "version": "0.0.1",
-  "description": "A Telegram bot for deposit a phone account.",
+  "description": "A Telegram bot for paying house bills.",
   "main": "botserver.js",
   "repository": "",
-  "author": "topa <phonedepobot@tomsha.ru>",
+  "author": "topa <paycitybot@tomsha.ru>",
   "dependencies": {
     "async": "^1.5.2",
     "deepcopy": "^0.6.1",
+    "mongodb": "^2.1.7",
     "request": "^2.69.0",
-    "telegram-node-bot": "^2.0.5"
+    "telegram-node-bot": "^2.0.5",
+    "yandex-money-sdk": "^0.1.6"
   }
 }
