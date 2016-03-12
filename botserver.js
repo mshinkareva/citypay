@@ -89,10 +89,12 @@ tg.controller('startControllerElectro', function ($) {
 tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
     $.waitForRequest(($) => {
-            if($.isNumeric()){$.sendMessage +' цифры'}
-            else{$.sendMessage +'ОЙ, ВСЕ!'}
+        var nums = $.message.text.replace(/[^0-9]/g, '');
+        if(nums.Lenght<=10){$.sendMessage('Это тройка')}
+        else{$.sendMessage('ОЙ, ВСЕ!')}
                      });
-    });
+})
+
 
 
 
