@@ -113,15 +113,15 @@ tg.controller('startControllerPhone', function($) {
     $.sendMessage('Минуточку, сейчас пополним баланс мобильного, просто отправьте контакт (ваш, либо любого другого человека из списка контактов)');
 });
 
-tg.controller('тройка', function($) {
+tg.controller('startTroika', function($) {
             $.sendMessage('это тройка');})
 
-tg.controller('96433078', function($) {
+tg.controller('startPodorojnik', function($) {
             $.sendMessage('это подорожник');
     
 });
 
-tg.controller('63628750', function($) {
+tg.controller('startTransponder', function($) {
             $.sendMessage('это транспондер');
     
 });
