@@ -104,8 +104,6 @@ tg.controller('startControllerTransport', function ($) {
                 if(spbNum ='63628750'){$.routeTo('63628750')}
                 else{$.sendMessage('Ой, все! Некорректная карта, я так не умею')}
             }
-
-        (spbNum =='96433078') ? $.routeTo('96433078'): $.routeTo('63628750')
         }
         });
 })
