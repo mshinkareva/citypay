@@ -33,9 +33,8 @@ function setMenu($, text) {
         $.runMenu({
             message: text,
             'транспорт' : function () { $.routeTo('транспорт') },
-            'электричество': function () { $.routeTo('свет') },
+            'электричество': function () { $.routeTo('коммунальные услуги') },
             'мобильная связь': function () { $.routeTo('мобильный') },
-            'газ'   : function () { $.routeTo('газ') },
             'История': function () { $.routeTo('historyController') },
             'О боте' : function () { $.routeTo('start') }
             
@@ -98,7 +97,7 @@ tg.controller('startControllerTransport', function ($) {
         if(nums.length<=10){$.routeTo('тройка') }
         else
         {
-        var spbNum= nums.substring(0,7) 
+        var spbNum= nums.substring(0,8) 
         if(spbNum =='96433078'){$.routeTo('96433078') +$.sendMessage(spbNum)}
             else{
                 if(spbNum =='63628750'){$.routeTo('63628750')+$.sendMessage(spbNum)}
