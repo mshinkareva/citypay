@@ -20,6 +20,11 @@ tg.router
     .when(c(['свет', 'электроэнергия', 'электричество']), 'startControllerElectro')
     .when(c(['газ']), 'startControllerGas')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
+    .when(c('тройка'), 'startTroika')
+    .when(c('96433078'), 'startPodorojnik')
+    .when(c('63628750'), 'startTransponder')
+
+    
     .otherwise('controller');
 
 
@@ -90,12 +95,12 @@ tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
     $.waitForRequest(($) => {
         var nums = $.message.text.replace(/[^0-9]/g, '');
-        if(nums.length<=10){$.sendMessage('Это тройка')}
-        else{var spbNum= nums.substring(0,7)
-            {$.sendMessage(spbNum)}
-            if(spbNum=='96433078'){$.sendMessage('podorojnik')}
-            }
-                     });
+        if(nums.length<=10){$.routeTo('тройка') }
+        else{
+        var spbNum= nums.substring(0,8) 
+         $.routeTo(spbNum)}
+            
+            });
 })
 
 
@@ -109,6 +114,15 @@ tg.controller('startControllerPhone', function($) {
 });
 
 
+tg.controller('96433078', function($) {
+            $.sendMessage('это подорожник');
+    
+});
+
+tg.controller('63628750', function($) {
+            $.sendMessage('это транспондер');
+    
+});
 
 tg.controller('controller', function($) {
     users.get($.user.id, $.user, function (err, user) {
