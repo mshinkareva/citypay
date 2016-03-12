@@ -98,10 +98,10 @@ tg.controller('startControllerTransport', function ($) {
         if(nums.length<=10){$.routeTo('тройка') }
         else
         {
-        var spbNum= nums.substring(0,8) 
+        var spbNum= nums.substring(0,7) 
         if(spbNum =='96433078'){$.routeTo('96433078') +$.sendMessage(spbNum)}
             else{
-                if(spbNum =='63628750'){$.routeTo('63628750')}
+                if(spbNum =='63628750'){$.routeTo('63628750')+$.sendMessage(spbNum)}
                 else{$.sendMessage('Ой, все! Некорректная карта, я так не умею'+spbNum)}
             }
         }
