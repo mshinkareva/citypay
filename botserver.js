@@ -33,6 +33,7 @@ function setMenu($, text) {
             'газ'   : function () { $.routeTo('газ') },
             'История': function () { $.routeTo('historyController') },
             'О боте' : function () { $.routeTo('start') }
+            
         });
     });
 }
