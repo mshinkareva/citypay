@@ -113,6 +113,8 @@ tg.controller('startControllerPhone', function($) {
     $.sendMessage('Минуточку, сейчас пополним баланс мобильного, просто отправьте контакт (ваш, либо любого другого человека из списка контактов)');
 });
 
+tg.controller('тройка', function($) {
+            $.sendMessage('это тройка');
 
 tg.controller('96433078', function($) {
             $.sendMessage('это подорожник');
