@@ -27,12 +27,7 @@ function setMenu($, text) {
     users.get($.user.id, $.user, function (err, user){
         $.runMenu({
             message: text,
-            'транспорт' : {
-                message: 'За какой транспорт вы хотите заплатить?',
-                'Подорожник' : function () { user.INN = ''; $.routeTo('оплата') },
-                'Транспондер': function () { user.INN = ''; $.routeTo('оплата') },
-                'Тройка'     : function () { user.INN = ''; $.routeTo('оплата') },
-            },
+            'транспорт' : function () { $.routeTo('транспорт') },
             'электричество': function () { $.routeTo('свет') },
             'мобильная связь': function () { $.routeTo('мобильный') },
             'газ'   : function () { $.routeTo('газ') },
@@ -92,13 +87,11 @@ tg.controller('startControllerElectro', function ($) {
 
 tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты. Кстати, а какая карта?");
-
-    $.waitForRequest(($)=> {
-        tg.for('подорожник', ($) => {
-            $.sendMessage('Отлично, просто четко сфотографируй подорожник, а я разберусь дальше сам');
+    $.waitForRequest(($) => {
+             $.sendMessage('Hi ' + $.message.text + '!')
         });
     });
-});
+
 
 
     
