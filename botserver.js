@@ -53,6 +53,10 @@ function getTokenCallback (user) {
         'Теперь можете воспользоваться платными функциями.');
 }
 
+tg.controller('startController2', function ($) {
+    $.sendMessage("Сейчас оплатим за газ.");
+});
+
 tg.controller('controller', function($) {
     users.get($.user.id, $.user, function (err, user) {
         $.sendMessage('Привет, ' + $.user.first_name);
