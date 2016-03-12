@@ -26,7 +26,7 @@ tg.controller('startController', function ($) {
 });
 
 tg.controller('startController2', function ($) {
-    $.sendMessage("Сейчас оплатим за газ");
+    $.sendMessage("Сейчас оплатим за газ.");
 });
 
 tg.controller('controller', function($) {
