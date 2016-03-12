@@ -90,8 +90,10 @@ tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
     $.waitForRequest(($) => {
         var nums = $.message.text.replace(/[^0-9]/g, '');
-        if(nums.length<=10){$.sendMessage('Это тройка'+ nums.length)}
-        else{$.sendMessage('ОЙ, ВСЕ!')}
+        if(nums.length<=10){$.sendMessage('Это тройка')}
+        else{var spbNum= nums.substring(0,7)
+            if(spbNum=='96433078'){$.sendMessage('podorojnik')}
+            }
                      });
 })
 
