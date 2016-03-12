@@ -92,6 +92,7 @@ tg.controller('startControllerTransport', function ($) {
         var nums = $.message.text.replace(/[^0-9]/g, '');
         if(nums.length<=10){$.sendMessage('Это тройка')}
         else{var spbNum= nums.substring(0,7)
+            {$.sendMessage(spbNum)}
             if(spbNum=='96433078'){$.sendMessage('podorojnik')}
             }
                      });
