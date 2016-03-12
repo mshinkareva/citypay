@@ -1,0 +1,14 @@
+{
+  "name": "PhoneDepoBot",
+  "version": "0.0.1",
+  "description": "A Telegram bot for deposit a phone account.",
+  "main": "botserver.js",
+  "repository": "",
+  "author": "topa <phonedepobot@tomsha.ru>",
+  "dependencies": {
+    "async": "^1.5.2",
+    "deepcopy": "^0.6.1",
+    "request": "^2.69.0",
+    "telegram-node-bot": "^2.0.5"
+  }
+}
