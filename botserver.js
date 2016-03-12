@@ -87,6 +87,20 @@ tg.controller('startControllerPhone', function($) {
     $.sendMessage('Минуточку, сейчас пополним баланс мобильного, просто отправьте контакт (ваш, либо любого другого человека из списка контактов)');
 });
 
+$.runMenu({
+    message: 'Select:',
+    'Exit': {
+        message: 'Do you realy want to exit?',
+        'yes': () => {
+
+        },
+        'no': () => {
+
+        }
+    } 
+})  
+
+
 
 
 tg.controller('controller', function($) {
