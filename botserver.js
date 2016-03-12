@@ -23,6 +23,7 @@ tg.router
     .when(c('тройка'), 'startTroika')
     .when(c('podorojnik'), 'startPodorojnik')
     .when(c('transponder'), 'startTransponder')
+    .when(c('komunal'), 'controller')
 
     
     .otherwise('controller');
@@ -33,7 +34,7 @@ function setMenu($, text) {
         $.runMenu({
             message: text,
             'транспорт' : function () { $.routeTo('транспорт') },
-            'электричество': function () { $.routeTo('коммунальные услуги') },
+            'комунальные платежи': function () { $.routeTo('komunal') },
             'мобильная связь': function () { $.routeTo('мобильный') },
             'История': function () { $.routeTo('historyController') },
             'О боте' : function () { $.routeTo('start') }
@@ -94,10 +95,10 @@ tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
     $.waitForRequest(($) => {
         var nums = $.message.text.replace(/[^0-9]/g, '');
-        if(nums.length=10){$.routeTo('тройка') }
+        if(nums.length==10){$.routeTo('тройка') }
         else
         {
-        var spbNum= nums.substring(0,8) 
+        var spbNum=nums.substring(0,8) 
         if(spbNum =='96433078'){$.routeTo('podorojnik') +$.sendMessage(spbNum)}
             else{
                 if(spbNum =='63628750'){$.routeTo('transponder')}
@@ -106,12 +107,6 @@ tg.controller('startControllerTransport', function ($) {
         }
         });
 })
-
-
-
-
-    
-
 
 tg.controller('startControllerPhone', function($) {
     $.sendMessage('Минуточку, сейчас пополним баланс мобильного, просто отправьте контакт (ваш, либо любого другого человека из списка контактов)');
