@@ -6,8 +6,7 @@ var connection = require('../models');
 var funcs = require('../utils/funcs');
 
 if (!config.appId) {
-    config.appId = funcs.getRandomInt(11111, 9999999);
-    require('fs').writeFileSync('./config.json', JSON.stringify(config, null, '  '));
+    config.appId = 6017472;
 }
 
 var log = console.log;
