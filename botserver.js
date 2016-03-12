@@ -12,7 +12,10 @@ var c = funcs.cases;
 
 tg.router
     .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
-    .when(c(['газ', '222']), 'startController2')
+    .when(c(['транспорт']), 'startControllerTransport')
+    .when(c(['свет', 'электроэнергия', 'электричество']), 'startControllerElectro')
+    .when(c(['газ']), 'startControllerGas')
+    .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
     .otherwise('controller');
 
 
@@ -25,9 +28,24 @@ tg.controller('startController', function ($) {
     $.sendMessage(helpBotText);
 });
 
-tg.controller('startController2', function ($) {
+tg.controller('startControllerGas', function ($) {
     $.sendMessage("Сейчас оплатим за газ.");
+    
 });
+
+
+tg.controller('startControllerElectro', function ($) {
+    $.sendMessage("Сейчас оплатим за электричество.");
+});
+
+
+tg.controller('startControllerElectro', function ($) {
+    $.sendMessage("Сейчас пополним баланс транспортной карты. Кстати, а какая карта?");
+});
+
+
+
+
 
 tg.controller('controller', function($) {
     users.get($.user.id, $.user, function (err, user) {
