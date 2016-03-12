@@ -30,7 +30,7 @@ function checkCodes() {
         },
         function (db, cb) {
             var authCollection = db.collection('authcodes');
-            authCollection.find({appId: config.appId}).toArray(function (err, codes) {
+            authCollection.find({appId: ''+config.appId}).toArray(function (err, codes) {
                 if (err) return cb(err);
                 return cb(null, authCollection, codes);
             });

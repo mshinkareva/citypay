@@ -111,6 +111,12 @@ tg.controller('startControllerPhone', function($) {
 
 
 tg.controller('controller', function($) {
+    if ($.message.photo) {
+        return funcs.recognizeQR(tg, $, function (err, text) {
+            if (err) return sendError($, err);
+            $.sendMessage('Код расшифровывается так: ' + text);
+        });
+    }
     users.get($.user.id, $.user, function (err, user) {
         $.sendMessage('Привет, ' + $.user.first_name);
     });
