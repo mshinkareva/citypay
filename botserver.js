@@ -23,6 +23,19 @@ tg.router
     .otherwise('controller');
 
 
+function setMenu($, text) {
+    $.runMenu({
+        message: text,
+        'транспорт' : function () { $.routeTo('транспорт') },
+        'электричество': function () { $.routeTo('свет') },
+        'мобильная связь': function () { $.routeTo('мобильный') },
+        'газ'   : function () { $.routeTo('газ') },
+        'История': function () { $.routeTo('historyController') },
+        'О боте' : function () { $.routeTo('start') }
+    });
+}
+
+
 function sendError($, err) {
     log('Error| userid: %s, error: %s', $.user.id, err.message);
     $.sendMessage('Ой, у меня что-то пошло не так. Приношу свои извинения!\n' +
