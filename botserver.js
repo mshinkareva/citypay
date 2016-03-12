@@ -96,9 +96,17 @@ tg.controller('startControllerTransport', function ($) {
     $.waitForRequest(($) => {
         var nums = $.message.text.replace(/[^0-9]/g, '');
         if(nums.length<=10){$.routeTo('тройка') }
-        else{
+        else
+        {
         var spbNum= nums.substring(0,8) 
-        (spbNum =='96433078') ? $.routeTo('96433078'): $.routeTo('63628750') }
+        if(spbNum ='96433078'){$.routeTo('96433078') }
+            else{
+                if(spbNum ='63628750'){$.routeTo('63628750')}
+                else{$.sendMessage('Ой, все! Некорректная карта, я так не умею')}
+            }
+
+        (spbNum =='96433078') ? $.routeTo('96433078'): $.routeTo('63628750')
+        }
         });
 })
 
