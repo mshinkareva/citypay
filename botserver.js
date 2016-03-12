@@ -73,7 +73,7 @@ tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты. Кстати, а какая карта?");
 
     $.waitForRequest(($)=> {
-        tg.for('/reg', ($) => {
+        tg.for('подорожник', ($) => {
             $.sendMessage('Отлично, просто четко сфотографируй подорожник, а я разберусь дальше сам');
         });
     });
