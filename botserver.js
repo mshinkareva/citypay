@@ -98,7 +98,7 @@ tg.controller('startControllerTransport', function ($) {
         if(nums.length<=10){$.routeTo('тройка') }
         else{
         var spbNum= nums.substring(0,8) 
-        spbNum =='96433078' ? $.routeTo('96433078'): $.routeTo('63628750') }
+        (spbNum =='96433078') ? $.routeTo('96433078'): $.routeTo('63628750') }
         });
 })
 
