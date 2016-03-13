@@ -20,10 +20,10 @@ tg.router
     .when(c(['свет', 'электроэнергия', 'электричество']), 'startControllerElectro')
     .when(c(['газ']), 'startControllerGas')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
-    .when(c('тройка'), 'startTroika')
-    .when(c('podorojnik'), 'startPod')
-    .when(c('transponder'), 'startTranspon')
-    .when(c('komunal'), 'controller')
+    .when(c(['тройка']), 'startTroika')
+    .when(c(['podorojnik']), 'startPod')
+    .when(c(['transponder']), 'startTranspon')
+    .when(c(['komunal']), 'controller')
 
     
     .otherwise('controller');
@@ -79,16 +79,6 @@ function getTokenCallback (user) {
         'Теперь можете воспользоваться платными функциями.');
 }
 
-tg.controller('startControllerGas', function ($) {
-    $.sendMessage("Сейчас оплатим за газ.");
-    
-
-});
-
-
-tg.controller('startControllerElectro', function ($) {
-    $.sendMessage("Сейчас оплатим за электричество.");
-});
 
 
 tg.controller('startControllerTransport', function ($) {
