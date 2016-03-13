@@ -131,7 +131,7 @@ tg.controller('controller', function($) {
 tg.controller('setPayerData', function($) {
     $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ');
     $.waitForRequest(($) => {
-        var str = $.message.text.split('');
+        var str = $.message.text.split(" ");
         $.sendMessage(str );
         $.sendMessage(str[1] );
         $.sendMessage(str.lengnth );
