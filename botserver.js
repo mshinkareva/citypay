@@ -21,8 +21,8 @@ tg.router
     .when(c(['газ']), 'startControllerGas')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
     .when(c('тройка'), 'startTroika')
-    .when(c('podorojnik'), 'startPodorojnik')
-    .when(c('transponder'), 'startTransponder')
+    .when(c('podorojnik'), 'startPod')
+    .when(c('transponder'), 'startTranspon')
     .when(c('komunal'), 'controller')
 
     
@@ -115,12 +115,12 @@ tg.controller('startControllerPhone', function($) {
 tg.controller('startTroika', function($) {
             $.sendMessage('это тройка');})
 
-tg.controller('startPodorojnik', function($) {
-            $.sendMessage('это же подорожник');
+tg.controller('startPod', function($) {
+    $.sendMessage('это  подорожник');
     
 });
 
-tg.controller('startTransponder', function($) {
+tg.controller('startTranspon', function($) {
             $.sendMessage('это транспондер');
     
 });
