@@ -24,8 +24,7 @@ tg.router
     .when(c(['podorojnik']), 'startPod')
     .when(c(['transponder']), 'startTranspon')
     .when(c(['komunal']), 'controller')
-
-    
+    .when(c(['intro']), 'setPayerData')
     .otherwise('controller');
 
 
@@ -69,6 +68,7 @@ tg.controller('authController', function ($) {
         if (err) return sendError($, err);
         $.sendMessage(util.format('Для авторизации в Яндекс.Деньгах вам нужно перейти по ссылке:\n%s', url));
     });
+
 });
 
 // вызывается после авторизации в Яндекс.Деньгах
@@ -125,4 +125,14 @@ tg.controller('controller', function($) {
     users.get($.user.id, $.user, function (err, user) {
         $.sendMessage('Привет, ' + $.user.first_name);
     });
+});
+
+
+tg.controller('setPayerData', function($) {
+    $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ' );
+    $.waitForRequest(($) => {
+        var str = $.message.text.split('');
+        $.sendMessage(str[0] );
+        
+        });
 });
