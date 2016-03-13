@@ -132,23 +132,26 @@ tg.controller('setPayerData', function($) {
     $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ');
     $.waitForRequest(($) => {
         var str = $.message.text.split(" ");
+
         var street = str[0];
         var house = str[1];
-        var flat = str[2]
+        var flat = str[2];
+
         $.sendMessage(street);
         $.sendMessage(house);
         $.sendMessage(flat);
+
+        $.sendMessage('Ведите ФИО');
+        $.waitForRequest(($) => {
+            var strFIO = $.message.text.split(" ");
+
+            var secondName = strFIO[0];
+            var firstName = strFIO[1];
+            var pathroName = strFIO[2];
+
+            $.sendMessage(secondName);
+            $.sendMessage(firstName);
+            $.sendMessage(pathroName);
         });
-        
-     $.sendMessage('Ведите ФИО');
-     $.waitForRequest(($) => {
-         
-        var strFIO = $.message.text.split(" ");
-        var secondName = strFIO[0];
-        var firstName = strFIO[1];
-        var pathroName = strFIO[2]
-        $.sendMessage(secondName);
-        $.sendMessage(firstName);
-        $.sendMessage(pathroName);
-        });    
+    });
 });
