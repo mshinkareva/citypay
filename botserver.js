@@ -134,7 +134,7 @@ tg.controller('setPayerData', function($) {
         var str = $.message.text.split(" ");
         $.sendMessage(str );
         $.sendMessage(str[1] );
-        $.sendMessage(str.lengnth );
+        $.sendMessage(str.length);
        
         });
 });
