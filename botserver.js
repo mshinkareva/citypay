@@ -132,9 +132,22 @@ tg.controller('setPayerData', function($) {
     $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ');
     $.waitForRequest(($) => {
         var str = $.message.text.split(" ");
-        $.sendMessage(str );
-        $.sendMessage(str[1] );
-        $.sendMessage(str.length);
-       
+        var street = str[0];
+        var house = str[1];
+        var flat = str[2]
+        $.sendMessage(street);
+        $.sendMessage(house);
+        $.sendMessage(flat);
         });
+        
+     $.sendMessage('Ведите ФИО');
+     $.waitForRequest(($) => {
+        var strFIO = $.message.text.split(" ");
+        var secondName = str[0];
+        var firstName = str[1];
+        var pathroName = str[2]
+        $.sendMessage(secondName);
+        $.sendMessage(hsecondNameouse);
+        $.sendMessage(flsecondNameat);
+        });    
 });
