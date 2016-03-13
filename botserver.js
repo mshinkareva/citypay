@@ -10,6 +10,7 @@ log.configure({});
 var util = require('util');
 var funcs = require('./utils/funcs');
 var c = funcs.cases;
+var async = require('async');
 
 var yamoney = require('./yamoney')(users, getTokenCallback, log);
 
@@ -17,9 +18,9 @@ tg.router
     .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
     .when(c(['auth', 'авторизов']), 'authController')
     .when(c(['транспорт']), 'startControllerTransport')
-    .when(c(['свет', 'электроэнергия', 'электричество']), 'startControllerElectro')
+    .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
     .when(c(['газ']), 'startControllerGas')
-    .when(c(['мобильный', 'сотовый', 'сотка', 'связь']), 'startControllerPhone')
+    .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
     .when(c(['тройка']), 'startTroika')
     .when(c(['podorojnik']), 'startPod')
     .when(c(['transponder']), 'startTranspon')
@@ -29,17 +30,25 @@ tg.router
 
 
 function setMenu($, text) {
-    users.get($.user.id, $.user, function (err, user){
-        $.runMenu({
-            message: text,
-            'транспорт' : function () { $.routeTo('транспорт') },
-            'комунальные платежи': function () { $.routeTo('komunal') },
-            'мобильная связь': function () { $.routeTo('мобильный') },
-            'История': function () { $.routeTo('historyController') },
-            'О боте' : function () { $.routeTo('start') }
-            
-        });
-    });
+    var kb = {
+        reply_markup: JSON.stringify({
+            hide_keyboard: true,
+            resize_keyboard: true,
+            one_time_keyboard: true,
+            keyboard: [
+                //['Транспорт'],
+                ['Электричество'],
+                ['Мобильная связь'],
+                //['История'],
+                ['О боте']
+            ]
+        })
+    };
+    if (isNaN(parseInt($))) {
+        $.sendMessage(text, kb);
+    } else {
+        tg.sendMessage($, text, kb);
+    }
 }
 
 
@@ -51,35 +60,208 @@ function sendError($, err) {
 
 var helpBotText =
     'Привет, я - бот для оплаты коммунальных платежей.' +
-    'Я умею платить за свет, газ и ЖКХ.' +
+    'Я умею платить за свет. Несу свет людям, так сказать ☀. И за телефон умею.' +
     '%s' +
-    '\n\nМеня сделали в рамках хакатона Яндекс.Денег';
+    '\n\nМеня сделали во время хакатона Яндекс.Денег';
 
 tg.controller('startController', function ($) {
     users.get($.user.id, $.user, function (err, user) {
         setMenu($, util.format(helpBotText, (user.accessToken ? '' :
-            'Для авторизации в Яндекс.Деньгах воспользуйтесь командой /auth.')));
-            
+            '\n\nВы можете сразу авторизоваться в Яндекс.Деньгах, чтобы потом без промедления платить за выбранные услуги.'+
+            '\nДля этого воспользуйтесь командой /auth.')));
     });
 });
 
 tg.controller('authController', function ($) {
     yamoney.getAuthURI($.user.id, function (err, url) {
         if (err) return sendError($, err);
-        $.sendMessage(util.format('Для авторизации в Яндекс.Деньгах вам нужно перейти по ссылке:\n%s', url));
+        $.sendMessage(util.format('Для авторизации вам нужно перейти на сайт Яндекс.Денег по ссылке:\n%s', url));
     });
-
 });
 
 // вызывается после авторизации в Яндекс.Деньгах
 // токен авторизации уже хранится в user.accessToken
 function getTokenCallback (user) {
-    tg.sendMessage(user.id,
+    setMenu(user.id,
         'Вы успешно прошли авторизацию в Яндекс.Деньгах!' +
         'Теперь можете воспользоваться платными функциями.');
+
+    if (user.waitedPhone) {
+        var phone = user.waitedPhone.phone;
+        var amount = user.waitedPhone.amount;
+        yamoney.payPhone(phone, amount, user.accessToken, function (err) {
+            if (err) return $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
+            user.waitedPhone = null;
+            tg.sendMessage(user.id, util.format('Мы с вами пополнили баланс телефона +%s на %sруб.! Командная работа!', phone, amount));
+        });
+    }
+
+    yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
+        function (err) {
+            if (err) return tg.sendMessage(user.id, 'К сожалению, при платеже возникла ошибка :(');
+            tg.sendMessage(user.id, 'Оплата счета за электричество прошла успешно! Так держать!');
+        }
+    );
 }
 
+tg.controller('phoneInfoController', function($) {
+    var messages = [
+        'Сейчас я пополню баланс абсолютно любого мобильного, который вы дадите (если он российский 🇷🇺). Просто отправьте мне контакт или номер телефона в виде +7...',
+        'Умею оплату мобильной связи, люблю, практикую. На какой номер класть 😏?',
+        'Пришлите мне контакт из адресной книги или номер телефона (начинающийся с +7) для пополнения баланса мобильного'
+    ];
+    $.sendMessage(funcs.getRandomElem(messages));
+});
 
+function payPhone($) {
+    var phone = '';
+    if ($.message.contact) {
+        phone = $.message.contact.phone_number;
+    } else {
+        var text = ($.message.text || '').replace(/[^0-9]/g, '');
+        if (text.length === 11) phone = text;
+    }
+
+    if (phone == '')
+        return $.sendMessage('У меня не получилось распознать введенный номер телефона. Попробуйте еще раз!');
+
+    $.sendMessage(util.format('Всё уже готово, чтобы пополнить баланс номера +%s. Сколько нужно положить на счет телефона?', phone), {
+        reply_markup: JSON.stringify({
+            hide_keyboard: true,
+            resize_keyboard: true,
+            one_time_keyboard: true,
+            keyboard: [ ['Отмена'] ]
+        })
+    });
+    $.waitForRequest(function($) {
+        if (!$.message.text) return $.routeTo('other');
+        if (isNaN(parseFloat($.message.text))) return setMenu($,
+            'Счет мобильного телефона пополнен не будет. Может сделаете что-нибудь еще?');
+
+        users.get($.user.id, $.user, function (err, user) {
+            if (err) return sendError($, err);
+            var amount = parseFloat($.message.text);
+
+            if (!user.accessToken) {
+                user.waitedPhone = {
+                    phone: phone,
+                    amount: amount
+                };
+                $.sendMessage('Для оплаты телефона вам понадобиться авторизоваться в Яндекс.Деньгах.');
+                return $.routeTo('/auth');
+            }
+
+            yamoney.payPhone(phone, amount, user.accessToken, function (err) {
+                if (err) return $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
+                user.waitedPhone = null;
+                $.sendMessage(util.format('Мы с вами пополнили баланс телефона +%s на %sруб.! Командная работа!', phone, amount));
+            });
+        });
+    });
+}
+
+tg.controller('electroController', function ($) {
+    payPSB($);
+});
+
+function payPSB($, text) {
+    var user = {};
+    async.waterfall([
+        function (callback) {
+            users.get($.user.id, $.user, callback);
+        },
+        function (auser, callback) {
+            user = auser;
+            if (!user.PSB) user.PSB = {};
+
+            if (text) {
+                try {
+                    user.PSB.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
+                } catch (e) {
+                    user.PSB.abNum = '';
+                }
+            }
+
+            callback(null);
+        },
+        function (callback) {
+            if (user.PSB.abNum) return callback(null);
+            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.');
+
+            function getQR() {
+                $.waitForRequest(function ($) {
+                    if (($.message.text) && (isNan(parseInt($.message.text)))) return callback(new Error('cancelled'));
+                    if ($.message.photo) {
+                        return funcs.recognizeQR(tg, $, function (err, text) {
+                            if (err) {
+                                $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
+                                    'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото.');
+                                return getQR();
+                            }
+
+                            if (text.indexOf('Петроэлектросбыт') < 0) {
+                                $.sendMessage('Полученный QR-код совсем не похож на код Петроэлектросбыта. Найдите, пожалуйста, более похожую квитанцию, а я подожду вашего QR-кода :).');
+                                return getQR();
+                            }
+
+                            try {
+                                user.PSB.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
+                            } catch (e) {
+                                user.PSB.abNum = '';
+                            }
+
+                            if (user.PSB.abNum == '') {
+                                $.sendMessage('Хотя этот штрихкод и принадлежит Петроэлектросбыту, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
+                                return getQR();
+                            }
+                        });
+                    }
+
+                    user.PSB.abNum = $.message.text;
+                    return callback(null);
+                });
+            }
+        },
+        function (callback) {
+            if (user.fullName) return callback(null);
+            $.sendMessage('Введите ваши Ф.И.О. для указания в квитанции на оплату:');
+            $.waitForRequest(function ($) {
+                user.fullName = $.message.text;
+                return callback(null);
+            });
+        },
+        function (callback) {
+            $.sendMessage('Сколько денег вы хотите потратить на оплату электричества?');
+            $.waitForRequest(function ($) {
+                user.PSB.sum = $.message.text;
+                return callback(null);
+            });
+        },
+        function (callback) {
+            $.sendMessage('Введите данные счетчиков за день и ночь через пробел (если счетчик однотарифный, ночной можете не вводить :) ).');
+            $.waitForRequest(function ($) {
+                var counts = $.message.text.split(' ');
+                user.PSB.countsDay = counts[0];
+                user.PSB.countsNight = (counts.length > 1) ? counts[1] : '';
+                return callback(null);
+            });
+        }
+    ], function (err) {
+        if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за свет. Но мы можем заплатить за что-нибудь еще!');
+        if (err) return sendError($, err);
+
+        if (!user.accessToken) {
+            $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
+            return $.routeTo('/auth');
+        }
+
+        yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
+          function (err) {
+              if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
+              $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
+          });
+    });
+}
 
 tg.controller('startControllerTransport', function ($) {
     $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
@@ -98,10 +280,6 @@ tg.controller('startControllerTransport', function ($) {
         });
 })
 
-tg.controller('startControllerPhone', function($) {
-    $.sendMessage('Минуточку, сейчас пополним баланс мобильного, просто отправьте контакт (ваш, либо любого другого человека из списка контактов)');
-});
-
 tg.controller('startTroika', function($) {
             $.sendMessage('это тройка');})
 
@@ -116,14 +294,29 @@ tg.controller('startTranspon', function($) {
 });
 
 tg.controller('controller', function($) {
+    if (($.message.contact) || ($.message.text && ($.message.text.indexOf('+7') == 0))) {
+        return payPhone($);
+    }
+
     if ($.message.photo) {
         return funcs.recognizeQR(tg, $, function (err, text) {
-            if (err) return sendError($, err);
-            $.sendMessage('Код расшифровывается так: ' + text);
+            if (err) return $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
+                'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото');
+
+            if (text.indexOf('Петроэлектросбыт') >= 0)
+                return payPSB($, text);
+
+            $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
+                'Но для вас я могу расшифровать этот QR-код: ' + text);
         });
     }
+
     users.get($.user.id, $.user, function (err, user) {
-        $.sendMessage('Привет, ' + $.user.first_name);
+        var msgs = [
+            util.format('Привет, %s', user.name),
+            'Сложные какие-то у вас сообщения, не для моего ботского интеллекта'
+        ];
+        $.sendMessage(funcs.getRandomElem(msgs));
     });
 });
 

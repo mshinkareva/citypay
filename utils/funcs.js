@@ -116,11 +116,31 @@ function recognizeQR(tg, $, cb) {
     ], cb);
 }
 
+function copyParams(obj, res) {
+    if (res === undefined) res = {};
+
+    if (obj instanceof Array) {
+        for (var i = 0; i < obj.length; i++) {
+            copyParams(obj[i], res);
+        }
+    } else if (obj.items && (obj.items instanceof Array)) {
+        for (i = 0; i < obj.items.length; i++) {
+            copyParams(obj.items[i], res);
+        }
+    } else if (obj instanceof Object) {
+        if (obj.name) {
+            res[obj.name] = (obj.value ? obj.value : null);
+        }
+    }
+    return res;
+}
+
 module.exports = {
     getRandomInt: getRandomInt,
     getRandomElem: getRandomElem,
     cases: cases,
     log: log,
     chooseFromArray: chooseFromArray,
-    recognizeQR: recognizeQR
+    recognizeQR: recognizeQR,
+    copyParams: copyParams
 };
