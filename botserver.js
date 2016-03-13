@@ -142,12 +142,13 @@ tg.controller('setPayerData', function($) {
         
      $.sendMessage('Ведите ФИО');
      $.waitForRequest(($) => {
+         
         var strFIO = $.message.text.split(" ");
-        var secondName = str[0];
-        var firstName = str[1];
-        var pathroName = str[2]
+        var secondName = strFIO[0];
+        var firstName = strFIO[1];
+        var pathroName = strFIO[2]
         $.sendMessage(secondName);
-        $.sendMessage(hsecondNameouse);
-        $.sendMessage(flsecondNameat);
+        $.sendMessage(firstName);
+        $.sendMessage(pathroName);
         });    
 });
