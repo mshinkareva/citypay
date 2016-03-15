@@ -14,7 +14,7 @@ var users = {};
 var getTokenCallback = null;
 
 function getAuthURI(userId, cb) {
-    var scope = ['payment-shop'];
+    var scope = ['payment-shop', 'operation-details'];
     url = yandexMoney.Wallet.buildObtainTokenUrl(config.clientId,
             config.redirectURI
             + '?appId='+ config.appId

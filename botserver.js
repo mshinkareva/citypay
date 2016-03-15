@@ -17,15 +17,15 @@ var yamoney = require('./yamoney')(users, getTokenCallback, log);
 tg.router
     .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
     .when(c(['auth', 'авторизов']), 'authController')
-    .when(c(['транспорт']), 'startControllerTransport')
+    //.when(c(['транспорт']), 'startControllerTransport')
     .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
-    .when(c(['газ']), 'startControllerGas')
+    //.when(c(['газ']), 'startControllerGas')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
-    .when(c(['тройка']), 'startTroika')
-    .when(c(['podorojnik']), 'startPod')
-    .when(c(['transponder']), 'startTranspon')
-    .when(c(['komunal']), 'controller')
-    .when(c(['intro']), 'setPayerData')
+    //.when(c(['тройка']), 'startTroika')
+    //.when(c(['podorojnik']), 'startPod')
+    //.when(c(['transponder']), 'startTranspon')
+    //.when(c(['komunal']), 'controller')
+    //.when(c(['intro']), 'setPayerData')
     .otherwise('controller');
 
 
@@ -99,6 +99,9 @@ function getTokenCallback (user) {
     yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
         function (err) {
             if (err) return tg.sendMessage(user.id, 'К сожалению, при платеже возникла ошибка :(');
+            user.PSB.sum = null;
+            user.PSB.countsDay = null;
+            user.PSB.countsNight = null;
             tg.sendMessage(user.id, 'Оплата счета за электричество прошла успешно! Так держать!');
         }
     );
@@ -263,35 +266,35 @@ function payPSB($, text) {
     });
 }
 
-tg.controller('startControllerTransport', function ($) {
-    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
-    $.waitForRequest(($) => {
-        var nums = $.message.text.replace(/[^0-9]/g, '');
-        if(nums.length==10){$.routeTo('тройка') }
-        else
-        {
-        var spbNum=nums.substring(0,8) 
-        if(spbNum =='96433078'){$.routeTo('podorojnik') +$.sendMessage(spbNum)}
-            else{
-                if(spbNum =='63628750'){$.routeTo('transponder')}
-                else{$.sendMessage('Ой, все! Некорректная карта, я так не умею '+spbNum)}
-            }
-        }
-        });
-})
-
-tg.controller('startTroika', function($) {
-            $.sendMessage('это тройка');})
-
-tg.controller('startPod', function($) {
-    $.sendMessage('это  подорожник');
-    
-});
-
-tg.controller('startTranspon', function($) {
-            $.sendMessage('это транспондер');
-    
-});
+//tg.controller('startControllerTransport', function ($) {
+//    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
+//    $.waitForRequest(($) => {
+//        var nums = $.message.text.replace(/[^0-9]/g, '');
+//        if(nums.length==10){$.routeTo('тройка') }
+//        else
+//        {
+//        var spbNum=nums.substring(0,8)
+//        if(spbNum =='96433078'){$.routeTo('podorojnik') +$.sendMessage(spbNum)}
+//            else{
+//                if(spbNum =='63628750'){$.routeTo('transponder')}
+//                else{$.sendMessage('Ой, все! Некорректная карта, я так не умею '+spbNum)}
+//            }
+//        }
+//        });
+//})
+//
+//tg.controller('startTroika', function($) {
+//            $.sendMessage('это тройка');})
+//
+//tg.controller('startPod', function($) {
+//    $.sendMessage('это  подорожник');
+//
+//});
+//
+//tg.controller('startTranspon', function($) {
+//            $.sendMessage('это транспондер');
+//
+//});
 
 tg.controller('controller', function($) {
     if (($.message.contact) || ($.message.text && ($.message.text.indexOf('+7') == 0))) {
@@ -321,30 +324,30 @@ tg.controller('controller', function($) {
 });
 
 
-tg.controller('setPayerData', function($) {
-    $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ');
-    $.waitForRequest(($) => {
-        var str = $.message.text.split(" ");
-
-        var street = str[0];
-        var house = str[1];
-        var flat = str[2];
-
-        $.sendMessage(street);
-        $.sendMessage(house);
-        $.sendMessage(flat);
-
-        $.sendMessage('Ведите ФИО');
-        $.waitForRequest(($) => {
-            var strFIO = $.message.text.split(" ");
-
-            var secondName = strFIO[0];
-            var firstName = strFIO[1];
-            var pathroName = strFIO[2];
-
-            $.sendMessage(secondName);
-            $.sendMessage(firstName);
-            $.sendMessage(pathroName);
-        });
-    });
-});
+//tg.controller('setPayerData', function($) {
+//    $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ');
+//    $.waitForRequest(($) => {
+//        var str = $.message.text.split(" ");
+//
+//        var street = str[0];
+//        var house = str[1];
+//        var flat = str[2];
+//
+//        $.sendMessage(street);
+//        $.sendMessage(house);
+//        $.sendMessage(flat);
+//
+//        $.sendMessage('Ведите ФИО');
+//        $.waitForRequest(($) => {
+//            var strFIO = $.message.text.split(" ");
+//
+//            var secondName = strFIO[0];
+//            var firstName = strFIO[1];
+//            var pathroName = strFIO[2];
+//
+//            $.sendMessage(secondName);
+//            $.sendMessage(firstName);
+//            $.sendMessage(pathroName);
+//        });
+//    });
+//});
