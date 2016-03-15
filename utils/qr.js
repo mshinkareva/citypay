@@ -1,4 +1,10 @@
-var method_path = require('path').dirname(process.mainModule.filename) + '/utils/bin/qr_win/zbarimg.exe';
+var method_path;
+if (require('os').platform() === 'linux') {
+    method_path = 'zbarimg';
+} else {
+    method_path = require('path').dirname(process.mainModule.filename) + '/utils/bin/qr_win/zbarimg.exe';
+}
+
 var iconv = new require('iconv-lite');
 
 module.exports = function (path, cb) {
