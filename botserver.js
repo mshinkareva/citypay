@@ -1,6 +1,6 @@
 'use strict';
 
-var bot_token = '217323643:AAEeVPyjOLTDWmbouk8dixXTSdARmPa7SEE';
+var bot_token = require('./config.json').token;
 var tg = require('telegram-node-bot')(bot_token);
 
 var users = require('./Controllers/users');
