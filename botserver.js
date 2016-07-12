@@ -19,7 +19,7 @@ tg.router
     .when(c(['auth', 'авторизов']), 'authController')
     //.when(c(['транспорт']), 'startControllerTransport')
     .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
-    //.when(c(['газ']), 'startControllerGas')
+    .when(c(['газ']), 'startControllerGas')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
     //.when(c(['тройка']), 'startTroika')
     //.when(c(['podorojnik']), 'startPod')
