@@ -38,6 +38,7 @@ function setMenu($, text) {
             keyboard: [
                 //['Транспорт'],
                 ['Электричество'],
+                ['Газ'],
                 ['Мобильная связь'],
                 //['История'],
                 ['О боте']
@@ -272,7 +273,7 @@ tg.controller('gasController', function ($) {
 });
 
 function payGas($, text) {
-    
+
 }
 //tg.controller('startControllerTransport', function ($) {
 //    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
