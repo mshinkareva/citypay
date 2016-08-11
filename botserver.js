@@ -352,7 +352,8 @@ tg.controller('controller', function($) {
 
             if (text.indexOf('Петроэлектросбыт') >= 0)
                 return payPSB($, text);
-
+            if (text.indexOf('Газпром') >= 0)
+                return payGas($, text);
             $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
                 'Но для вас я могу расшифровать этот QR-код: ' + text);
         });
