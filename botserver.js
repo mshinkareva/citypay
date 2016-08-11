@@ -273,6 +273,7 @@ tg.controller('gasController', function ($) {
 });
 
 function payGas($, text) {
+    $.sendMessage("Сейчас заплатим за газ");
 
 }
 //tg.controller('startControllerTransport', function ($) {
