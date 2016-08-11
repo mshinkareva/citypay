@@ -19,7 +19,7 @@ tg.router
     .when(c(['auth', 'авторизов']), 'authController')
     //.when(c(['транспорт']), 'startControllerTransport')
     .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
-    .when(c(['газ']), 'startControllerGas')
+    .when(c(['газ']), 'gasController')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
     //.when(c(['тройка']), 'startTroika')
     //.when(c(['podorojnik']), 'startPod')
@@ -266,6 +266,14 @@ function payPSB($, text) {
     });
 }
 
+
+tg.controller('gasController', function ($) {
+    payGas($);
+});
+
+function payGas($, text) {
+    
+}
 //tg.controller('startControllerTransport', function ($) {
 //    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
 //    $.waitForRequest(($) => {
@@ -322,6 +330,8 @@ tg.controller('controller', function($) {
         $.sendMessage(funcs.getRandomElem(msgs));
     });
 });
+
+
 
 
 //tg.controller('setPayerData', function($) {
