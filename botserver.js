@@ -275,6 +275,40 @@ tg.controller('gasController', function ($) {
 function payGas($, text) {
     $.sendMessage("Сейчас заплатим за газ");
 
+    function getQR() {
+        $.waitForRequest(function ($) {
+            if (($.message.text) && (isNan(parseInt($.message.text)))) return callback(new Error('cancelled'));
+            if ($.message.photo) {
+                return funcs.recognizeQR(tg, $, function (err, text) {
+                    if (err) {
+                        $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
+                            'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото.');
+                        return getQR();
+                    }
+
+                    if (text.indexOf('Газпром') < 0) {
+                        $.sendMessage('Полученный QR-код совсем не похож на код Газпрома. Найдите, пожалуйста, более похожую квитанцию, а я подожду вашего QR-кода :).');
+                        return getQR();
+                    }
+
+                    try {
+                        user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
+                    } catch (e) {
+                        user.Gas.abNum = '';
+                    }
+
+                    if (user.Gas.abNum == '') {
+                        $.sendMessage('Хотя этот штрихкод и принадлежит Газпрому, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
+                        return getQR();
+                    }
+                });
+            }
+
+            user.Gas.abNum = $.message.text;
+            return callback(null);
+        });
+    }
+
 }
 //tg.controller('startControllerTransport', function ($) {
 //    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
