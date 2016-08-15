@@ -288,12 +288,12 @@ function payGas($, text) {
         },
         function (callback) {
             if (user.Gas.abNum) return callback(null);
-            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по газу, или отправьте мне фотографию QR-кода с квитанции :)'+user.Gas.abNum+'--');
+            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по газу, или отправьте мне фотографию QR-кода с квитанции');
 
 
         },
         function (callback) {
-            $.sendMessage('Сколько денег вы хотите потратить на оплату газа?'+user.Gas.abNum);
+            $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
             $.waitForRequest(function ($) {
                 user.PSB.sum = $.message.text;
                 return callback(null);
