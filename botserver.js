@@ -295,19 +295,10 @@ function payGas($, text) {
         function (callback) {
             $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
             $.waitForRequest(function ($) {
-                user.PSB.sum = $.message.text;
+                user.Gas.sum = $.message.text;
                 return callback(null);
             });
         },
-        function (callback) {
-            $.sendMessage('Введите данные счетчиков за день и ночь через пробел (если счетчик однотарифный, ночной можете не вводить :) ).');
-            $.waitForRequest(function ($) {
-                var counts = $.message.text.split(' ');
-                user.PSB.countsDay = counts[0];
-                user.PSB.countsNight = (counts.length > 1) ? counts[1] : '';
-                return callback(null);
-            });
-        }
     ], function (err) {
         if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за газ. Но мы можем заплатить за что-нибудь еще!');
         if (err) return sendError($, err);
