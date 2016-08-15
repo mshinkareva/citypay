@@ -261,7 +261,7 @@ function payPSB($, text) {
         yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
           function (err) {
               if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-              $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
+              $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!'); 
           });
     });
 }
