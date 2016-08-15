@@ -186,12 +186,6 @@ function getQR() {
                     payGas($);
                 }
 
-
-
-                if (user.PSB.abNum == '') {
-                    $.sendMessage('Хотя этот штрихкод и принадлежит Петроэлектросбыту, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
-                    return getQR();
-                }
             });
         }
 
@@ -221,7 +215,7 @@ function payPSB($, text) {
         },
         function (callback) {
             if (user.PSB.abNum) return callback(null);
-            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.'+user.PSB.abNum);
+            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.');
 
 
         },
@@ -259,10 +253,10 @@ function payPSB($, text) {
         }
 
         yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
-          function (err) {
-              if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-              $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
-          });
+            function (err) {
+                if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
+                $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
+            });
     });
 }
 
@@ -300,6 +294,11 @@ function payGas($, text) {
                         $.sendMessage('Хотя этот штрихкод и принадлежит Газпрому, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
                         return getQR();
                     }
+                    yamoney.payGas(user.Gas.abNum, user.Gas.sum, user.fullName, user.accessToken,
+                        function (err) {
+                            if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
+                            $.sendMessage('Оплата счета за газ прошла успешно! Так держать!');
+                        });
                 });
             }
 

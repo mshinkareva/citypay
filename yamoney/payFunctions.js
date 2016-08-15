@@ -156,10 +156,51 @@ function payPSB(abNum, sum, fio, countsDay, countsNight, token, cb) {
     });
 }
 
+function payGas(abNum, sum, fio, token, cb) {
+    async.waterfall([
+        function (callback) {
+            var time = new Date();
+            var fields = {
+                ErrorTemplate: "ym2xmlerror",
+                FormComment: "Газпром",
+                ShowCaseID: "7",
+                SuccessTemplate: "ym2xmlsuccess",
+                fio: fio,
+                netSum: sum,
+                rapida_param1: abNum,
+                rapida_param4: countsDay,
+                rapida_param5: countsNight,
+                rnd: funcs.getRandomInt(99240000, 99249999),
+                scid: "1353",
+                secureparam5: "5",
+                shn: "Газпром",
+                sum: parseFloat(sum)+30,
+                targetcurrency: "643",
+                'try-payment': "true",
+                month: ((time.getMonth()+1) < 10 ? '0'+(time.getMonth()+1) : ''+ (time.getMonth()+1)),
+                year: time.getFullYear(),
+                pattern_id: 1353
+            };
+
+            console.log(fields);
+            callback(null, fields);
+        },
+        function (fields, callback) {
+            pay(token, fields, callback);
+        }
+    ], function (err, data) {
+        if (err) return cb(err);
+        if (data.status !== 'success') return cb(new Error(data.status));
+        console.log('Success payment from %s on sum %srub.', fio, sum);
+        return cb(err, data);
+    });
+}
+
 module.exports = {
     payPhone: payPhone,
     payPodorozhnik: payPodorozhnik,
-    payPSB: payPSB
+    payPSB: payPSB,
+    payGas: payGas
 };
 
 //payPSB('872306', 200, 'Шинкарева Мария Сергеевна', '9741', '',
