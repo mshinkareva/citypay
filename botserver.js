@@ -216,8 +216,6 @@ function payPSB($, text) {
         function (callback) {
             if (user.PSB.abNum) return callback(null);
             $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.');
-
-
         },
         function (callback) {
             if (user.fullName) return callback(null);
@@ -226,14 +224,14 @@ function payPSB($, text) {
                 user.fullName = $.message.text;
                 return callback(null);
             });
-        },
+        }, //First Name, Second Name, patronymic
         function (callback) {
             $.sendMessage('Сколько денег вы хотите потратить на оплату электричества?');
             $.waitForRequest(function ($) {
                 user.PSB.sum = $.message.text;
                 return callback(null);
             });
-        },
+        },//sum
         function (callback) {
             $.sendMessage('Введите данные счетчиков за день и ночь через пробел (если счетчик однотарифный, ночной можете не вводить :) ).');
             $.waitForRequest(function ($) {
@@ -242,7 +240,7 @@ function payPSB($, text) {
                 user.PSB.countsNight = (counts.length > 1) ? counts[1] : '';
                 return callback(null);
             });
-        }
+        }//counters
     ], function (err) {
         if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за свет. Но мы можем заплатить за что-нибудь еще!');
         if (err) return sendError($, err);
@@ -251,6 +249,7 @@ function payPSB($, text) {
             $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
             return $.routeTo('/auth');
         }
+        
 
         yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
             function (err) {
