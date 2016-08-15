@@ -167,7 +167,38 @@ function payPhone($) {
 tg.controller('electroController', function ($) {
     payPSB($);
 });
+//расшифровка qr
+function getQR() {
+    $.waitForRequest(function ($) {
+        if (($.message.text) && (isNan(parseInt($.message.text)))) return callback(new Error('cancelled'));
+        if ($.message.photo) {
+            return funcs.recognizeQR(tg, $, function (err, text) {
+                if (err) {
+                    $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
+                        'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото.');
+                    return getQR();
+                }
 
+                if (text.indexOf('Петроэлектросбыт') == 1) {
+                    payPSB($);
+                }
+                else if(text.indexOf('Газпром') == 1) {
+                    payGas($);
+                }
+
+
+
+                if (user.PSB.abNum == '') {
+                    $.sendMessage('Хотя этот штрихкод и принадлежит Петроэлектросбыту, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
+                    return getQR();
+                }
+            });
+        }
+
+        user.PSB.abNum = $.message.text;
+        return callback(null);
+    });
+}
 function payPSB($, text) {
     var user = {};
     async.waterfall([
@@ -192,39 +223,7 @@ function payPSB($, text) {
             if (user.PSB.abNum) return callback(null);
             $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.');
 
-            function getQR() {
-                $.waitForRequest(function ($) {
-                    if (($.message.text) && (isNan(parseInt($.message.text)))) return callback(new Error('cancelled'));
-                    if ($.message.photo) {
-                        return funcs.recognizeQR(tg, $, function (err, text) {
-                            if (err) {
-                                $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
-                                    'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото.');
-                                return getQR();
-                            }
 
-                            if (text.indexOf('Петроэлектросбыт') < 0) {
-                                $.sendMessage('Полученный QR-код совсем не похож на код Петроэлектросбыта. Найдите, пожалуйста, более похожую квитанцию, а я подожду вашего QR-кода :).');
-                                return getQR();
-                            }
-
-                            try {
-                                user.PSB.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
-                            } catch (e) {
-                                user.PSB.abNum = '';
-                            }
-
-                            if (user.PSB.abNum == '') {
-                                $.sendMessage('Хотя этот штрихкод и принадлежит Петроэлектросбыту, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
-                                return getQR();
-                            }
-                        });
-                    }
-
-                    user.PSB.abNum = $.message.text;
-                    return callback(null);
-                });
-            }
         },
         function (callback) {
             if (user.fullName) return callback(null);
