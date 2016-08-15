@@ -156,7 +156,7 @@ function payPSB(abNum, sum, fio, countsDay, countsNight, token, cb) {
     });
 }
 
-function payGas(abNum, sum, fio, token, cb) {
+function payGas(abNum, sum, token, cb) {
     async.waterfall([
         function (callback) {
             var time = new Date();
@@ -165,7 +165,6 @@ function payGas(abNum, sum, fio, token, cb) {
                 FormComment: "Газпром",
                 ShowCaseID: "7",
                 SuccessTemplate: "ym2xmlsuccess",
-                fio: fio,
                 netSum: sum,
                 rapida_param1: abNum,
                 rapida_param4: countsDay,
@@ -191,7 +190,7 @@ function payGas(abNum, sum, fio, token, cb) {
     ], function (err, data) {
         if (err) return cb(err);
         if (data.status !== 'success') return cb(new Error(data.status));
-        console.log('Success payment from %s on sum %srub.', fio, sum);
+        console.log('Success payment from %s on sum %srub.',  sum);
         return cb(err, data);
     });
 }

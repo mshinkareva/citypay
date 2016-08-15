@@ -267,45 +267,63 @@ tg.controller('gasController', function ($) {
 
 function payGas($, text) {
     $.sendMessage("Сейчас заплатим за газ");
+    var user = {};
+    async.waterfall([
+        function (callback) {
+            users.get($.user.id, $.user, callback);
+        },
+        function (auser, callback) {
+            user = auser;
+            if (!user.Gas) user.Gas = {};
 
-    function getQR() {
-        $.waitForRequest(function ($) {
-            if (($.message.text) && (isNan(parseInt($.message.text)))) return callback(new Error('cancelled'));
-            if ($.message.photo) {
-                return funcs.recognizeQR(tg, $, function (err, text) {
-                    if (err) {
-                        $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
-                            'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото.');
-                        return getQR();
-                    }
-
-                    if (text.indexOf('Газпром') < 0) {
-                        $.sendMessage('Полученный QR-код совсем не похож на код Газпрома. Найдите, пожалуйста, более похожую квитанцию, а я подожду вашего QR-кода :).');
-                        return getQR();
-                    }
-
-                    try {
-                        user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
-                    } catch (e) {
-                        user.Gas.abNum = '';
-                    }
-
-                    if (user.Gas.abNum == '') {
-                        $.sendMessage('Хотя этот штрихкод и принадлежит Газпрому, информации о номере абонента на нем не найдено. Введите такой номер вручную, пожалуйста.')
-                        return getQR();
-                    }
-                    yamoney.payGas(user.Gas.abNum, user.Gas.sum, user.fullName, user.accessToken,
-                        function (err) {
-                            if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-                            $.sendMessage('Оплата счета за газ прошла успешно! Так держать!');
-                        });
-                });
+            if (text) {
+                try {
+                    user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'Persacc')[0][1];
+                } catch (e) {
+                    user.Gas.abNum = '';
+                }
             }
 
-            user.Gas.abNum = $.message.text;
-            return callback(null);
-        });
-    }
+            callback(null);
+        },
+        function (callback) {
+            if (user.Gas.abNum) return callback(null);
+            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по газу, или отправьте мне фотографию QR-кода с квитанции.');
+
+
+        },
+        function (callback) {
+            $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
+            $.waitForRequest(function ($) {
+                user.PSB.sum = $.message.text;
+                return callback(null);
+            });
+        },
+        function (callback) {
+            $.sendMessage('Введите данные счетчиков за день и ночь через пробел (если счетчик однотарифный, ночной можете не вводить :) ).');
+            $.waitForRequest(function ($) {
+                var counts = $.message.text.split(' ');
+                user.PSB.countsDay = counts[0];
+                user.PSB.countsNight = (counts.length > 1) ? counts[1] : '';
+                return callback(null);
+            });
+        }
+    ], function (err) {
+        if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за газ. Но мы можем заплатить за что-нибудь еще!');
+        if (err) return sendError($, err);
+
+        if (!user.accessToken) {
+            $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
+            return $.routeTo('/auth');
+        }
+
+        yamoney.payGas(user.Gas.abNum, user.Gas.sum, user.accessToken,
+            function (err) {
+                if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
+                $.sendMessage('Оплата счета за газ прошла успешно! Так держать!');
+            });
+    });
+
 
 }
 //tg.controller('startControllerTransport', function ($) {
