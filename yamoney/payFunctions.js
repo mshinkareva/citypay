@@ -167,8 +167,6 @@ function payGas(abNum, sum, token, cb) {
                 SuccessTemplate: "ym2xmlsuccess",
                 netSum: sum,
                 rapida_param1: abNum,
-                rapida_param4: countsDay,
-                rapida_param5: countsNight,
                 rnd: funcs.getRandomInt(99240000, 99249999),
                 scid: "13538",
                 secureparam5: "5",
