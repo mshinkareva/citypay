@@ -294,7 +294,7 @@ function payGas($, text) {
 
         },
         function (callback) {
-            $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
+            $.sendMessage('Сколько денег вы хотите потратить на оплату газа?'+user.Gas.abNum);
             $.waitForRequest(function ($) {
                 user.PSB.sum = $.message.text;
                 return callback(null);
