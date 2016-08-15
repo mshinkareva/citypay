@@ -278,7 +278,8 @@ function payGas($, text) {
 
             if (text) {
                 try {
-                    user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'Persacc')[0][1];
+                    user.Gas.abNum = text.split('|');
+                            //.map((x) => x.split('=')).filter((x) => x[0] == 'Persacc')[0][1];
                 } catch (e) {
                     user.Gas.abNum = '';
                 }
