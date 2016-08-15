@@ -211,7 +211,7 @@ function payPSB($, text) {
 
             if (text) {
                 try {
-                    user.PSB.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
+                    user.PSB.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'Persacc')[0][1];
                 } catch (e) {
                     user.PSB.abNum = '';
                 }
@@ -221,7 +221,7 @@ function payPSB($, text) {
         },
         function (callback) {
             if (user.PSB.abNum) return callback(null);
-            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.');
+            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по электричеству, или отправьте мне фотографию QR-кода с квитанции.'+user.PSB.abNum);
 
 
         },
@@ -261,7 +261,7 @@ function payPSB($, text) {
         yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
           function (err) {
               if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-              $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!'); 
+              $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
           });
     });
 }
