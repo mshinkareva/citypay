@@ -170,7 +170,7 @@ function payGas(abNum, sum, token, cb) {
                 rapida_param4: countsDay,
                 rapida_param5: countsNight,
                 rnd: funcs.getRandomInt(99240000, 99249999),
-                scid: "1353",
+                scid: "13538",
                 secureparam5: "5",
                 shn: "Газпром",
                 sum: parseFloat(sum)+30,
@@ -178,7 +178,7 @@ function payGas(abNum, sum, token, cb) {
                 'try-payment': "true",
                 month: ((time.getMonth()+1) < 10 ? '0'+(time.getMonth()+1) : ''+ (time.getMonth()+1)),
                 year: time.getFullYear(),
-                pattern_id: 1353
+                pattern_id: 13538
             };
 
             console.log(fields);
