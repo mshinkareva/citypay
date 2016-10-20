@@ -185,6 +185,9 @@ function getQR() {
                 else if(text.indexOf('Газпром') == 1) {
                     payGas($);
                 }
+                else if(text.indexOf('ВЦКП') == 1) {
+                    payKvarplata($);
+                }
 
             });
         }
@@ -277,7 +280,11 @@ function payGas($, text) {
 
             if (text) {
                 try {
-                    user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
+                    user.Gas.abNum = text.split('|').map((x) = > x.split('=')
+                ).
+                    filter((x) = > x[0] == 'PersAcc'
+                )
+                    [0][1];
                 } catch (e) {
                     user.Gas.abNum = '';
                 }
@@ -313,8 +320,61 @@ function payGas($, text) {
                 $.sendMessage('Оплата счета за газ прошла успешно! Так держать!');
             });
     });
+}
+    
+    tg.controller('kvarplataController', function ($) {
+        payKvarplata($);
+    });
+
+function payKvarplata($, text) {
+        $.sendMessage("Сейчас заплатим за ВЦКП");
+        var user = {};
+        async.waterfall([
+            function (callback) {
+                users.get($.user.id, $.user, callback);
+            },
+            function (auser, callback) {
+                user = auser;
+                if (!user.Gas) user.Gas = {};
+
+                if (text) {
+                    try {
+                        user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
+                    } catch (e) {
+                        user.Gas.abNum = '';
+                    }
+                }
+
+                callback(null);
+            },
+            function (callback) {
+                if (user.Gas.abNum) return callback(null);
+                $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по газу, или отправьте мне фотографию QR-кода с квитанции');
 
 
+            },
+            function (callback) {
+                $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
+                $.waitForRequest(function ($) {
+                    user.Gas.sum = $.message.text;
+                    return callback(null);
+                });
+            },
+        ], function (err) {
+            if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за ВЦКП. Но мы можем заплатить за что-нибудь еще!');
+            if (err) return sendError($, err);
+
+            if (!user.accessToken) {
+                $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
+                return $.routeTo('/auth');
+            }
+
+            yamoney.payKvarplata(user.Gas.abNum, user.Gas.sum, user.accessToken,
+                function (err) {
+                    if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
+                    $.sendMessage('Оплата счета за ВЦКП прошла успешно! Так держать!');
+                });
+        });    
 }
 //tg.controller('startControllerTransport', function ($) {
 //    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");

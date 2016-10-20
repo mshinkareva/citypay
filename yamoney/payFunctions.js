@@ -193,6 +193,117 @@ function payGas(abNum, sum, token, cb) {
     });
 }
 
+function payGas(abNum, sum, token, cb) {
+    async.waterfall([
+        function (callback) {
+            var time = new Date();
+            var fields = {
+                ErrorTemplate: "ym2xmlerror",
+                FormComment: "Газпром",
+                ShowCaseID: "7",
+                SuccessTemplate: "ym2xmlsuccess",
+                netSum: sum,
+                rapida_param1: abNum,
+                rnd: funcs.getRandomInt(99240000, 99249999),
+                scid: "13538",
+                secureparam5: "5",
+                shn: "Газпром",
+                sum: parseFloat(sum)+30,
+                targetcurrency: "643",
+                'try-payment': "true",
+                month: ((time.getMonth()+1) < 10 ? '0'+(time.getMonth()+1) : ''+ (time.getMonth()+1)),
+                year: time.getFullYear(),
+                pattern_id: 13538
+            };
+
+            console.log(fields);
+            callback(null, fields);
+        },
+        function (fields, callback) {
+            pay(token, fields, callback);
+        }
+    ], function (err, data) {
+        if (err) return cb(err);
+        if (data.status !== 'success') return cb(new Error(data.status));
+        console.log('Success payment from %s on sum %srub.',  sum);
+        return cb(err, data);
+    });
+}
+
+function payKvarplata(abNum, sum, token, cb) {
+    async.waterfall([
+        function (callback) {
+            var time = new Date();
+            var fields = {
+                ErrorTemplate: "ym2xmlerror",
+                FormComment: "Газпром",
+                ShowCaseID: "7",
+                SuccessTemplate: "ym2xmlsuccess",
+                netSum: sum,
+                rapida_param1: abNum,
+                rnd: funcs.getRandomInt(99240000, 99249999),
+                scid: "13538",
+                secureparam5: "5",
+                shn: "Газпром",
+                sum: parseFloat(sum)+30,
+                targetcurrency: "643",
+                'try-payment': "true",
+                month: ((time.getMonth()+1) < 10 ? '0'+(time.getMonth()+1) : ''+ (time.getMonth()+1)),
+                year: time.getFullYear(),
+                pattern_id: 13538
+            };
+
+            console.log(fields);
+            callback(null, fields);
+        },
+        function (fields, callback) {
+            pay(token, fields, callback);
+        }
+    ], function (err, data) {
+        if (err) return cb(err);
+        if (data.status !== 'success') return cb(new Error(data.status));
+        console.log('Success payment from %s on sum %srub.',  sum);
+        return cb(err, data);
+    });
+}
+
+function payKvarplata(abNum, sum, token, cb) {
+    async.waterfall([
+        function (callback) {
+            var time = new Date();
+            var fields = {
+                ErrorTemplate: "ym2xmlerror",
+                FormComment: "ГУП ВЦКП \"Жилищное хозяйство\"",
+                ShowCaseID: "7",
+                SuccessTemplate: "ym2xmlsuccess",
+                netSum: sum,
+                rapida_param1: abNum,
+                rnd: funcs.getRandomInt(99240000, 99249999),
+                scid: "9011",
+                secureparam5: "5",
+                shn: "ГУП ВЦКП \"Жилищное хозяйство\"",
+                sum: parseFloat(sum)+30,
+                targetcurrency: "643",
+                'try-payment': "true",
+                month: ((time.getMonth()+1) < 10 ? '0'+(time.getMonth()+1) : ''+ (time.getMonth()+1)),
+                year: time.getFullYear(),
+                pattern_id: 13538
+            };
+
+            console.log(fields);
+            callback(null, fields);
+        },
+        function (fields, callback) {
+            pay(token, fields, callback);
+        }
+    ], function (err, data) {
+        if (err) return cb(err);
+        if (data.status !== 'success') return cb(new Error(data.status));
+        console.log('Success payment from %s on sum %srub.',  sum);
+        return cb(err, data);
+    });
+}
+
 module.exports = {
     payPhone: payPhone,
     payPodorozhnik: payPodorozhnik,
