@@ -1,10 +1,13 @@
 'use strict';
 
-var bot_token = require('./config.json').token;
-var tg = require('telegram-node-bot')(bot_token);
-
 var users = require('./Controllers/users');
 var log = require('./utils/logs');
+
+var bot_token = require('./config.json').bot_token;
+var tg = require('telegram-node-bot')(bot_token);
+
+console.log('Citypay bot started.');
+
 log.configure({});
 
 var util = require('util');
@@ -17,15 +20,9 @@ var yamoney = require('./yamoney')(users, getTokenCallback, log);
 tg.router
     .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
     .when(c(['auth', 'авторизов']), 'authController')
-    //.when(c(['транспорт']), 'startControllerTransport')
     .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
-    .when(c(['газ']), 'gasController')
+   // .when(c(['газ']), 'gasController')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
-    //.when(c(['тройка']), 'startTroika')
-    //.when(c(['podorojnik']), 'startPod')
-    //.when(c(['transponder']), 'startTranspon')
-    //.when(c(['komunal']), 'controller')
-    //.when(c(['intro']), 'setPayerData')
     .otherwise('controller');
 
 
@@ -40,7 +37,6 @@ function setMenu($, text) {
                 ['Электричество'],
                 ['Газ'],
                 ['Мобильная связь'],
-                //['История'],
                 ['О боте']
             ]
         })
@@ -51,7 +47,6 @@ function setMenu($, text) {
         tg.sendMessage($, text, kb);
     }
 }
-
 
 function sendError($, err) {
     log('Error| userid: %s, error: %s', $.user.id, err.message);
@@ -65,6 +60,41 @@ var helpBotText =
     '%s' +
     '\n\nМеня сделали во время хакатона Яндекс.Денег';
 
+
+tg.controller('controller', function($) {
+    if (($.message.contact) || ($.message.text && ($.message.text.indexOf('+7') == 0))) {
+        return payPhone($);
+    }
+
+    if ($.message.photo) {
+        return funcs.recognizeQR(tg, $, function (err, text) {
+            if (err) return $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
+                'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото');
+
+            if (text.indexOf('Петроэлектросбыт') >= 0)
+                return payPSB($, text);
+            if (text.indexOf('Газпром') >= 0)
+                return payGas($, text);
+            else if(text.indexOf('Жилищное') >= 0)
+                return payKvarplata($, text);
+            $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
+                'Но для вас я могу расшифровать этот QR-код: ' + text);
+        });
+    }
+
+    if ($.message.text) {
+        $.sendMessage('I can\'t recognize this organization');
+    }
+
+    users.get($.user.id, $.user, function (err, user) {
+        var msgs = [
+            util.format('Hello, %s', user.name),
+            'Its too complicated for me!'
+        ];
+        $.sendMessage(funcs.getRandomElem(msgs));
+    });
+});
+
 tg.controller('startController', function ($) {
     users.get($.user.id, $.user, function (err, user) {
         setMenu($, util.format(helpBotText, (user.accessToken ? '' :
@@ -74,6 +104,7 @@ tg.controller('startController', function ($) {
 });
 
 tg.controller('authController', function ($) {
+    console.log($.user.id)
     yamoney.getAuthURI($.user.id, function (err, url) {
         if (err) return sendError($, err);
         $.sendMessage(util.format('Для авторизации вам нужно перейти на сайт Яндекс.Денег по ссылке:\n%s', url));
@@ -91,7 +122,10 @@ function getTokenCallback (user) {
         var phone = user.waitedPhone.phone;
         var amount = user.waitedPhone.amount;
         yamoney.payPhone(phone, amount, user.accessToken, function (err) {
-            if (err) return $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
+            if (err) {
+                console.log(err);
+                return;
+            }
             user.waitedPhone = null;
             tg.sendMessage(user.id, util.format('Мы с вами пополнили баланс телефона +%s на %sруб.! Командная работа!', phone, amount));
         });
@@ -163,39 +197,11 @@ function payPhone($) {
         });
     });
 }
-
+//оплата электричества
 tg.controller('electroController', function ($) {
     payPSB($);
 });
-//расшифровка qr
-function getQR() {
-    $.waitForRequest(function ($) {
-        if (($.message.text) && (isNan(parseInt($.message.text)))) return callback(new Error('cancelled'));
-        if ($.message.photo) {
-            return funcs.recognizeQR(tg, $, function (err, text) {
-                if (err) {
-                    $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
-                        'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото.');
-                    return getQR();
-                }
 
-                if (text.indexOf('Петроэлектросбыт') == 1) {
-                    payPSB($);
-                }
-                else if(text.indexOf('Газпром') == 1) {
-                    payGas($);
-                }
-                else if(text.indexOf('ВЦКП') == 1) {
-                    payKvarplata($);
-                }
-
-            });
-        }
-
-        user.PSB.abNum = $.message.text;
-        return callback(null);
-    });
-}
 function payPSB($, text) {
     var user = {};
     async.waterfall([
@@ -205,7 +211,6 @@ function payPSB($, text) {
         function (auser, callback) {
             user = auser;
             if (!user.PSB) user.PSB = {};
-
             if (text) {
                 try {
                     user.PSB.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'Persacc')[0][1];
@@ -213,7 +218,6 @@ function payPSB($, text) {
                     user.PSB.abNum = '';
                 }
             }
-
             callback(null);
         },
         function (callback) {
@@ -243,7 +247,8 @@ function payPSB($, text) {
                 user.PSB.countsNight = (counts.length > 1) ? counts[1] : '';
                 return callback(null);
             });
-        }//counters
+        }
+            //counters
     ], function (err) {
         if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за свет. Но мы можем заплатить за что-нибудь еще!');
         if (err) return sendError($, err);
@@ -262,13 +267,11 @@ function payPSB($, text) {
     });
 }
 
-
-tg.controller('gasController', function ($) {
-    payGas($);
+tg.controller('kvarplataController', function ($) {
+    payKvarplata($);
 });
 
-function payGas($, text) {
-    $.sendMessage("Сейчас заплатим за газ");
+function payKvarplata($, text) {
     var user = {};
     async.waterfall([
         function (callback) {
@@ -276,191 +279,59 @@ function payGas($, text) {
         },
         function (auser, callback) {
             user = auser;
-            if (!user.Gas) user.Gas = {};
-
+            if (!user.Kvarplata) user.Kvarplata = {};
             if (text) {
                 try {
-                    user.Gas.abNum = text.split('|').map((x) = > x.split('=')
-                ).
-                    filter((x) = > x[0] == 'PersAcc'
-                )
-                    [0][1];
+                    user.Kvarplata.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
                 } catch (e) {
-                    user.Gas.abNum = '';
+                    user.Kvarplata.abNum = '';
                 }
             }
-
             callback(null);
         },
         function (callback) {
-            if (user.Gas.abNum) return callback(null);
-            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по газу, или отправьте мне фотографию QR-кода с квитанции');
-
-
+            if (user.Kvarplata.abNum) return callback(null);
+            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по кварплате, или отправьте мне фотографию QR-кода с квитанции.');
         },
         function (callback) {
-            $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
+            if (user.fullName) return callback(null);
+            $.sendMessage('Введите ваши Ф.И.О. для указания в квитанции на оплату:');
             $.waitForRequest(function ($) {
-                user.Gas.sum = $.message.text;
+                user.fullName = $.message.text;
                 return callback(null);
             });
-        },
+        }, //First Name, Second Name, patronymic
+        function (callback) {
+            $.sendMessage('Сколько денег вы хотите потратить на оплату кварплаты?');
+            $.waitForRequest(function ($) {
+                user.Kvarplata.sum = $.message.text;
+                return callback(null);
+            });
+        },//sum
+        /*
+        function (callback) {
+            $.sendMessage('Введите данные счетчиков за холодную и горячую воду, но можете не вводить :) ).');
+            $.waitForRequest(function ($) {
+                var counts = $.message.text.split(' ');
+                user.Kvarplata.countsCold = counts[0];
+                user.Kvarplata.countsHot =  counts[1];
+                return callback(null);
+            });
+        }
+        */
+        //counters
     ], function (err) {
-        if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за газ. Но мы можем заплатить за что-нибудь еще!');
+        if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за кварплату. Но мы можем заплатить за что-нибудь еще!');
         if (err) return sendError($, err);
 
         if (!user.accessToken) {
             $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
             return $.routeTo('/auth');
         }
-
-        yamoney.payGas(user.Gas.abNum, user.Gas.sum, user.accessToken,
+        yamoney.payKvarplata(user.Kvarplata.abNum, user.Kvarplata.sum,  user.accessToken,
             function (err) {
                 if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-                $.sendMessage('Оплата счета за газ прошла успешно! Так держать!');
+                $.sendMessage('Оплата счета за кварплату прошла успешно! Так держать!');
             });
     });
 }
-    
-    tg.controller('kvarplataController', function ($) {
-        payKvarplata($);
-    });
-
-function payKvarplata($, text) {
-        $.sendMessage("Сейчас заплатим за ВЦКП");
-        var user = {};
-        async.waterfall([
-            function (callback) {
-                users.get($.user.id, $.user, callback);
-            },
-            function (auser, callback) {
-                user = auser;
-                if (!user.Gas) user.Gas = {};
-
-                if (text) {
-                    try {
-                        user.Gas.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
-                    } catch (e) {
-                        user.Gas.abNum = '';
-                    }
-                }
-
-                callback(null);
-            },
-            function (callback) {
-                if (user.Gas.abNum) return callback(null);
-                $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по газу, или отправьте мне фотографию QR-кода с квитанции');
-
-
-            },
-            function (callback) {
-                $.sendMessage('Сколько денег вы хотите потратить на оплату газа?');
-                $.waitForRequest(function ($) {
-                    user.Gas.sum = $.message.text;
-                    return callback(null);
-                });
-            },
-        ], function (err) {
-            if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за ВЦКП. Но мы можем заплатить за что-нибудь еще!');
-            if (err) return sendError($, err);
-
-            if (!user.accessToken) {
-                $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
-                return $.routeTo('/auth');
-            }
-
-            yamoney.payKvarplata(user.Gas.abNum, user.Gas.sum, user.accessToken,
-                function (err) {
-                    if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-                    $.sendMessage('Оплата счета за ВЦКП прошла успешно! Так держать!');
-                });
-        });    
-}
-//tg.controller('startControllerTransport', function ($) {
-//    $.sendMessage("Сейчас пополним баланс транспортной карты.Кстати, а какая карта?");
-//    $.waitForRequest(($) => {
-//        var nums = $.message.text.replace(/[^0-9]/g, '');
-//        if(nums.length==10){$.routeTo('тройка') }
-//        else
-//        {
-//        var spbNum=nums.substring(0,8)
-//        if(spbNum =='96433078'){$.routeTo('podorojnik') +$.sendMessage(spbNum)}
-//            else{
-//                if(spbNum =='63628750'){$.routeTo('transponder')}
-//                else{$.sendMessage('Ой, все! Некорректная карта, я так не умею '+spbNum)}
-//            }
-//        }
-//        });
-//})
-//
-//tg.controller('startTroika', function($) {
-//            $.sendMessage('это тройка');})
-//
-//tg.controller('startPod', function($) {
-//    $.sendMessage('это  подорожник');
-//
-//});
-//
-//tg.controller('startTranspon', function($) {
-//            $.sendMessage('это транспондер');
-//
-//});
-
-tg.controller('controller', function($) {
-    if (($.message.contact) || ($.message.text && ($.message.text.indexOf('+7') == 0))) {
-        return payPhone($);
-    }
-
-    if ($.message.photo) {
-        return funcs.recognizeQR(tg, $, function (err, text) {
-            if (err) return $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
-                'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото');
-
-            if (text.indexOf('Петроэлектросбыт') >= 0)
-                return payPSB($, text);
-            if (text.indexOf('Газпром') >= 0)
-                return payGas($, text);
-            $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
-                'Но для вас я могу расшифровать этот QR-код: ' + text);
-        });
-    }
-
-    users.get($.user.id, $.user, function (err, user) {
-        var msgs = [
-            util.format('Привет, %s', user.name),
-            'Сложные какие-то у вас сообщения, не для моего ботского интеллекта'
-        ];
-        $.sendMessage(funcs.getRandomElem(msgs));
-    });
-});
-
-
-
-
-//tg.controller('setPayerData', function($) {
-//    $.sendMessage('Ведите ваш адрес в формате улица, дом, квартира ');
-//    $.waitForRequest(($) => {
-//        var str = $.message.text.split(" ");
-//
-//        var street = str[0];
-//        var house = str[1];
-//        var flat = str[2];
-//
-//        $.sendMessage(street);
-//        $.sendMessage(house);
-//        $.sendMessage(flat);
-//
-//        $.sendMessage('Ведите ФИО');
-//        $.waitForRequest(($) => {
-//            var strFIO = $.message.text.split(" ");
-//
-//            var secondName = strFIO[0];
-//            var firstName = strFIO[1];
-//            var pathroName = strFIO[2];
-//
-//            $.sendMessage(secondName);
-//            $.sendMessage(firstName);
-//            $.sendMessage(pathroName);
-//        });
-//    });
-//});
