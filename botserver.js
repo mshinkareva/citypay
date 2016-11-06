@@ -3,7 +3,7 @@
 var users = require('./Controllers/users');
 var log = require('./utils/logs');
 
-var bot_token = require('./config.json').bot_token;
+var bot_token = require('./config.js').bot_token;
 var tg = require('telegram-node-bot')(bot_token);
 
 console.log('Citypay bot started.');

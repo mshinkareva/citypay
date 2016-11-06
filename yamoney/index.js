@@ -1,7 +1,7 @@
 var yandexMoney = require("yandex-money-sdk");
 var async = require('async');
 
-var config = require('../config.json').yandex_money;
+var config = require('../config.js').yandex_money;
 var connection = require('../models');
 var funcs = require('../utils/funcs');
 
