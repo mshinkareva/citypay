@@ -1,13 +1,10 @@
 var yandexMoney = require("yandex-money-sdk");
 var async = require('async');
 
-var config = require('./config.json');
+var config = require('../config.json').yandex_money;
 var connection = require('../models');
 var funcs = require('../utils/funcs');
 
-if (!config.appId) {
-    config.appId = 6017472;
-}
 
 var log = console.log;
 var users = {};
@@ -15,7 +12,7 @@ var getTokenCallback = null;
 
 function getAuthURI(userId, cb) {
     var scope = ['payment-shop', 'operation-details'];
-    url = yandexMoney.Wallet.buildObtainTokenUrl(config.clientId,
+    var url = yandexMoney.Wallet.buildObtainTokenUrl(config.clientId,
             config.redirectURI
             + '?appId='+ config.appId
             + '&userId=' + userId
@@ -30,7 +27,7 @@ function checkCodes() {
         },
         function (db, cb) {
             var authCollection = db.collection('authcodes');
-            authCollection.find({appId: ''+config.appId}).toArray(function (err, codes) {
+            authCollection.find({"appId": toString(config.appId)}).toArray(function (err, codes) {
                 if (err) return cb(err);
                 return cb(null, authCollection, codes);
             });
@@ -42,15 +39,17 @@ function checkCodes() {
                     (code.userId !== undefined) &&
                     (code.appId  !== undefined)
                 ) {
-                    yandexMoney.Wallet.getAccessToken(config.clientId, code.code, config.redirectURI, null,
+                    yandexMoney.Wallet.getAccessToken(config.clientId, code.code, config.redirectURI, config.OAuth2,
                         function tokenComplete(err, data) {
                             if(err) return log('Error while get access token: %s', err.message);
+
+                            console.log(data);
 
                             var access_token = data.access_token;
                             log('user %s access token: %s', code.userId, access_token);
 
                             users.get(code.userId, function (err, user) {
-                                if (err) log('Error while getting user %s: %s', userId, err.message);
+                                if (err) log('Error while getting user %s: %s', user, err.message);
 
                                 user.accessToken = access_token;
                                 if (getTokenCallback) getTokenCallback(user);
@@ -65,7 +64,7 @@ function checkCodes() {
         if (err) log('checkAuthCodes error: ' + err.message);
     });
 }
-setInterval(checkCodes, 500);
+setInterval(checkCodes, 1000);
 
 function init (_users, _getTokenCallback, _logger) {
     if (!users) throw new Error('You should specify users to store access tokens');
