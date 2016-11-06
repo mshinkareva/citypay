@@ -4,7 +4,8 @@
   "description": "A Telegram bot for paying house bills.",
   "main": "botserver.js",
   "scripts": {
-    "start": "node botserver.js"
+    "start": "node botserver.js",
+    "redirect_app": "node yamoney/redirectURI.js"
   },
   "author": "topa <paycitybot@tomsha.ru>",
   "dependencies": {
