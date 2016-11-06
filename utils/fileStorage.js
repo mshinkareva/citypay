@@ -13,6 +13,7 @@ var Storage = function (filename, params, cb) {
     var _cb = (arguments.length === 3) ? cb : (typeof(params) === 'function') ? params : new Function();
 
     this.filename = filename;
+    // console.log(filename)
     if (!fs.existsSync(path.dirname(filename))) {
         fs.mkdirSync(path.dirname(filename));
     }
@@ -38,7 +39,7 @@ Storage.prototype = {
             },
             function (fh, callback) {
                 fileHandle = fh;
-                action(fileHandle, callback);
+                action(self.filename, callback);
             }
         ], function (err) {
             if (err) self.log('Error while manipulating data in file %s: %s', self.filename, err.message);

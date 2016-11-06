@@ -81,15 +81,14 @@ function saveToFileDemon() {
                     logParams.filePath = fileName;
                 }
 
-                return cb(err, fileHandle);
+                return cb(err, fileName);
             });
         },
-        function (fileHandle, cb) {
+        function (fileName, cb) {
             var logsString = logs.join('\n\n').trim();
             if (logsString !== '') logsString += '\n\n';
             logs = [];
-
-            fs.appendFile(fileHandle, logsString, cb);
+            fs.appendFile(fileName, logsString, cb);
         }
     ], function (err) {
         if (err) log('error while creating log file: %s', err.message);
