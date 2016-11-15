@@ -26,6 +26,30 @@ function pay(token, params, cb) {
     ], cb);
 }
 
+
+function vckpSearch(token, params, cb) {
+    var api = new yandexMoney.Wallet(token);
+
+    async.waterfall([
+        function (callback) {
+            api.requestPayment(params, callback);
+        },
+        function (data) {
+            var callback = arguments[arguments.length - 1];
+            if (data.status !== 'success') {
+                if (data.error === 'not_enough_funds') {
+                    return callback(new Error('not_enough_funds'));
+                }
+                return callback(new Error('Request payment status is ' + data.status + ', error: ' + data.error));
+            }
+
+            api.processPayment({
+                "request_id": data.request_id
+            }, callback);
+        }
+    ], cb);
+}
+
 function payPhone (number, amount, token, cb) {
     var _number = number.replace(/[^0-9]/g,'');
     pay(token, {
@@ -193,36 +217,23 @@ function payGas(abNum, sum, token, cb) {
     });
 }
 
+
+
+
 function payKvarplata(abNum, sum, token, cb) {
     async.waterfall([
         function (callback) {
             var time = new Date();
             var fields = {
-                ErrorTemplate: "ym2xmlerror",
-                FormComment: "ВЦГП",
-                ShowCaseID: "7",
-                SuccessTemplate: "ym2xmlsuccess",
-                netSum: sum,
-                rapida_param1: abNum,
-                //rapida_param4: countsCold,
-                //rapida_param5: countsHot,
-                rnd: funcs.getRandomInt(99240000, 99249999),
-                scid: "9011",
-                secureparam5: "5",
-                shn: "ГУП ВГЦП Жилищное Хозяйство",
-                sum: parseFloat(sum),
-                targetcurrency: "643",
-                'try-payment': "true",
+                action: "validate",
+                account:abNum,
                 month: ((time.getMonth()+1) < 10 ? '0'+(time.getMonth()+1) : ''+ (time.getMonth()+1)),
-                year: time.getFullYear(),
-                pattern_id: 13538
-            };
-
+                year: time.getFullYear()};
             console.log(fields);
             callback(null, fields);
         },
         function (fields, callback) {
-            pay(token, fields, callback);
+            vckpSearch(token, fields, callback);
         }
     ], function (err, data) {
         if (err) return cb(err);
@@ -230,6 +241,7 @@ function payKvarplata(abNum, sum, token, cb) {
         console.log('Success payment from %s on sum %srub.',  sum);
         return cb(err, data);
     });
+    
 }
 
 module.exports = {
@@ -237,7 +249,8 @@ module.exports = {
     payPodorozhnik: payPodorozhnik,
     payPSB: payPSB,
     payGas: payGas,
-    payKvarplata: payKvarplata
+    payKvarplata: payKvarplata,
+    vckpSearch:vckpSearch
 
 };
 

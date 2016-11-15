@@ -71,12 +71,20 @@ tg.controller('controller', function($) {
             if (err) return $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
                 'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото');
 
-            if (text.indexOf('Петроэлектросбыт') >= 0)
+            console.log(text);
+
+            if (text.indexOf('Петроэлектросбыт') >= 0) {
+                console.log('QR - PSB');
                 return payPSB($, text);
-            if (text.indexOf('Газпром') >= 0)
+            }
+            if (text.indexOf('Газпром') >= 0) {
+                console.log('QR - Gasprom');
                 return payGas($, text);
-            else if(text.indexOf('Жилищное') >= 0)
+            }
+            else if(text.indexOf('Жилищное') >= 0) {
+                console.log('QR - VCKP');
                 return payKvarplata($, text);
+            }
             $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
                 'Но для вас я могу расшифровать этот QR-код: ' + text);
         });
@@ -131,15 +139,15 @@ function getTokenCallback (user) {
         });
     }
 
-    yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
-        function (err) {
-            if (err) return tg.sendMessage(user.id, 'К сожалению, при платеже возникла ошибка :(');
-            user.PSB.sum = null;
-            user.PSB.countsDay = null;
-            user.PSB.countsNight = null;
-            tg.sendMessage(user.id, 'Оплата счета за электричество прошла успешно! Так держать!');
-        }
-    );
+    // yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
+    //     function (err) {
+    //         if (err) return tg.sendMessage(user.id, 'К сожалению, при платеже возникла ошибка :(');
+    //         user.PSB.sum = null;
+    //         user.PSB.countsDay = null;
+    //         user.PSB.countsNight = null;
+    //         tg.sendMessage(user.id, 'Оплата счета за электричество прошла успешно! Так держать!');
+    //     }
+    // );
 }
 
 tg.controller('phoneInfoController', function($) {
@@ -307,7 +315,7 @@ function payKvarplata($, text) {
                 user.Kvarplata.sum = $.message.text;
                 return callback(null);
             });
-        },//sum
+        }//sum
         /*
         function (callback) {
             $.sendMessage('Введите данные счетчиков за холодную и горячую воду, но можете не вводить :) ).');
@@ -330,6 +338,7 @@ function payKvarplata($, text) {
         }
         yamoney.payKvarplata(user.Kvarplata.abNum, user.Kvarplata.sum,  user.accessToken,
             function (err) {
+                console.log(err);
                 if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
                 $.sendMessage('Оплата счета за кварплату прошла успешно! Так держать!');
             });
