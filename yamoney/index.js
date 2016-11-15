@@ -1,5 +1,6 @@
 var yandexMoney = require("yandex-money-sdk");
 var async = require('async');
+var request = require('request');
 
 var config = require('../config.js').yandex_money;
 var connection = require('../models');
@@ -20,6 +21,25 @@ function getAuthURI(userId, cb) {
     return cb(null, url);
 }
 
+// This workaround is just because of non-working yandex money api - no "grant_type" field
+function getToken(clientId, code, redirectURI, clientSecret, callback) {
+    var full_url = "https://sp-money.yandex.ru/oauth/token";
+    request.post({
+            "url": full_url,
+            "form": {
+                "code": code,
+                "client_id": clientId,
+                "redirect_uri": redirectURI,
+                "grant_type": "authorization_code",
+                "client_secret": clientSecret
+            }
+        }, (err, httpResponse, body) => {
+            callback(err, JSON.parse(body))
+        }
+    )
+}
+
+
 function checkCodes() {
     async.waterfall([
         function (cb) {
@@ -27,7 +47,7 @@ function checkCodes() {
         },
         function (db, cb) {
             var authCollection = db.collection('authcodes');
-            authCollection.find({"appId": toString(config.appId)}).toArray(function (err, codes) {
+            authCollection.find({"appId": config.appId.toString()}).toArray(function (err, codes) {
                 if (err) return cb(err);
                 return cb(null, authCollection, codes);
             });
@@ -39,14 +59,12 @@ function checkCodes() {
                     (code.userId !== undefined) &&
                     (code.appId  !== undefined)
                 ) {
-                    yandexMoney.Wallet.getAccessToken(config.clientId, code.code, config.redirectURI, config.OAuth2,
-                        function tokenComplete(err, data) {
+                    getToken(config.clientId, code.code, config.redirectURI, config.OAuth2,
+                        (err, data) => {
                             if(err) return log('Error while get access token: %s', err.message);
 
-                            console.log(data);
-
                             var access_token = data.access_token;
-                            log('user %s access token: %s', code.userId, access_token);
+                            log('user %s got access token', code.userId);
 
                             users.get(code.userId, function (err, user) {
                                 if (err) log('Error while getting user %s: %s', user, err.message);
