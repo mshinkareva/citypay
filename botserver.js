@@ -32,7 +32,6 @@ function setMenu($, text) {
             resize_keyboard: true,
             one_time_keyboard: true,
             keyboard: [
-                //['Транспорт'],
                 ['Электричество'],
                 ['Газ'],
                 ['Мобильная связь'],
