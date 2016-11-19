@@ -21,7 +21,6 @@ tg.router
     .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
     .when(c(['auth', 'авторизов']), 'authController')
     .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
-   // .when(c(['газ']), 'gasController')
     .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
     .otherwise('controller');
 
