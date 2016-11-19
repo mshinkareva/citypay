@@ -1,5 +1,3 @@
-'use strict';
-
 var users = require('./Controllers/users');
 var log = require('./utils/logs');
 
