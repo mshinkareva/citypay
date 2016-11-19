@@ -7,6 +7,7 @@ var bot_token = require('./config.js').bot_token;
 var tg = require('telegram-node-bot')(bot_token);
 
 console.log('Citypay bot started.');
+console.log(tg);
 
 log.configure({});
 
