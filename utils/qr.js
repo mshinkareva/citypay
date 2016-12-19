@@ -1,4 +1,5 @@
 var method_path;
+
 if (require('os').platform() === 'linux') {
     method_path = 'zbarimg';
 } else {

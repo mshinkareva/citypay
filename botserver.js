@@ -1,65 +1,60 @@
-var users = require('./Controllers/users');
-var log = require('./utils/logs');
+import async from 'async';
 
-var bot_token = require('./config.js').bot_token;
-var tg = require('telegram-node-bot')(bot_token);
+import config from './config'
 
-console.log('Citypay bot started...');
+import { users, auth, getTokenFromDB} from './models'
 
-log.configure({});
+var tg = require('telegram-node-bot')(config.bot_token);
 
-var util = require('util');
 var funcs = require('./utils/funcs');
-var c = funcs.cases;
-var async = require('async');
 
-var yamoney = require('./yamoney')(users, getTokenCallback, log);
+import * as yamoney from './yamoney';
+
 
 tg.router
-    .when(c(['start', 'help', 'О боте', 'привет', 'Привет']), 'startController')
-    .when(c(['auth', 'авторизов']), 'authController')
-    .when(c(['свет', 'электроэнергия', 'электричество']), 'electroController')
-    .when(c(['мобильный', 'сотовый', 'сотка', 'связь', 'сота', 'тел', 'мтс', 'мегафон', 'билайн']), 'phoneInfoController')
-    .otherwise('controller');
+    .when(aboutChoices, ABOUT_CONTROLLER)
+    .when(helloChoices, HELLO_CONTROLLER)
+    .when(authChoices, AUTH_CONTROLLER)
+    .when(confirmAuthChoices, CONFIRM_AUTH_CONTROLLER)
+    .when(electroChoices, ELECTRO_CONTROLLER)
+    .when(cellChoices, CELLPHONE_CONTROLLER)
+    .otherwise(DEFAULT_CONTROLLER);
 
 
-function setMenu($, text) {
-    var kb = {
-        reply_markup: JSON.stringify({
-            hide_keyboard: true,
-            resize_keyboard: true,
-            one_time_keyboard: true,
-            keyboard: [
-                ['Электричество'],
-                ['Газ'],
-                ['Мобильная связь'],
-                ['О боте']
-            ]
-        })
-    };
-    if (isNaN(parseInt($))) {
-        $.sendMessage(text, kb);
-    } else {
-        tg.sendMessage($, text, kb);
-    }
-}
-
-function sendError($, err) {
-    log('Error| userid: %s, error: %s', $.user.id, err.message);
-    $.sendMessage('Ой, у меня что-то пошло не так. Приношу свои извинения!\n' +
-        'Повторите, пожалуйста, ваше последнее действие.')
-}
-
-var helpBotText =
-    'Привет, я - бот для оплаты коммунальных платежей.' +
-    'Я умею платить за свет. Несу свет людям, так сказать ☀. И за телефон умею.' +
-    '%s' +
-    '\n\nМеня сделали во время хакатона Яндекс.Денег';
+tg.controller(ABOUT_CONTROLLER, $ => {
+    const aboutBot =
+        `Привет, я - бот для оплаты коммунальных платежей
+        Я умею платить за свет. Несу свет людям, так сказать ☀. И за телефон умею.
+        Меня сделали во время хакатона Яндекс.Денег.`;
+    $.sendMessage(aboutBot);
+});
 
 
-tg.controller('controller', function($) {
-    if (($.message.contact) || ($.message.text && ($.message.text.indexOf('+7') == 0))) {
-        return payPhone($);
+tg.controller(HELLO_CONTROLLER, $ => {
+    const user_name = $.user.first_name;
+    users.findOne({user: $.user.id})
+        .then(doc => {
+            if (doc) {
+                console.log(`User ${user_name} connected!`);
+                $.runMenu({
+                    message: `${user_name}, Вы уже успешно авторизованы ы Яндекс.Деньгах. Что хотели бы оплатить?`,
+                    'Использовать QR код': () => { $.sendMessage('Пришлите фотографию квитанции с QR кодом') },
+                    'Пополнить баланс телефона': () => { $.routeTo('/mobile') }
+                })
+            } else {
+                $.runMenu({message: `Уважаемый ${user_name}, Вы можете сразу авторизоваться в Яндекс.Деньгах,
+                чтобы потом без промедления платить за выбранные услуги.`,
+                    'Авторизация в Яндекс.Деньгах': () => { $.routeTo('/auth') },
+                    'О боте': () => { $.routeTo('/about') }
+                });
+            }
+        });
+});
+
+
+tg.controller(DEFAULT_CONTROLLER, $ => {
+    if (($.message.contact) || ($.message.text && ($.message.text.startsWith('+7')))) {
+        $.routeTo('/help');
     }
 
     if ($.message.photo) {
@@ -67,147 +62,113 @@ tg.controller('controller', function($) {
             if (err) return $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
                 'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото');
 
-            console.log(text);
-
-            if (text.indexOf('Петроэлектросбыт') >= 0) {
-                console.log('QR - PSB');
+            if (text.includes('Петроэлектросбыт')) {
                 return payPSB($, text);
+            } else {
+                $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
+                    'Но для вас я могу расшифровать этот QR-код: ' + text);
             }
-            if (text.indexOf('Газпром') >= 0) {
-                console.log('QR - Gasprom');
-                return payGas($, text);
-            }
-            else if(text.indexOf('Жилищное') >= 0) {
-                console.log('QR - VCKP');
-                return payKvarplata($, text);
-            }
-            $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
-                'Но для вас я могу расшифровать этот QR-код: ' + text);
         });
     }
 
     if ($.message.text) {
-        $.sendMessage('I can\'t recognize this organization');
+        $.sendMessage('Не удалось распознать команду');
     }
+});
 
-    users.get($.user.id, $.user, function (err, user) {
-        var msgs = [
-            util.format('Hello, %s', user.name),
-            'Its too complicated for me!'
-        ];
-        $.sendMessage(funcs.getRandomElem(msgs));
+
+tg.controller(AUTH_CONTROLLER, $ => {
+    const authUrl = yamoney.getAuthURI($.user.id);
+    $.runMenu({
+        message: `Для авторизации вам нужно перейти на сайт Яндекс.Денег по ссылке:\n${authUrl}\n` +
+        'Как только авторизация будет закончена, нажмите подтвердить',
+        'Подтвердить авторизацию': () => { $.routeTo('/confirmAuth') }
     });
 });
 
-tg.controller('startController', function ($) {
-    users.get($.user.id, $.user, function (err, user) {
-        setMenu($, util.format(helpBotText, (user.accessToken ? '' :
-            '\n\nВы можете сразу авторизоваться в Яндекс.Деньгах, чтобы потом без промедления платить за выбранные услуги.'+
-            '\nДля этого воспользуйтесь командой /auth.')));
-    });
-});
 
-tg.controller('authController', function ($) {
-    console.log($.user.id)
-    yamoney.getAuthURI($.user.id, function (err, url) {
-        if (err) return sendError($, err);
-        $.sendMessage(util.format('Для авторизации вам нужно перейти на сайт Яндекс.Денег по ссылке:\n%s', url));
-    });
-});
+tg.controller(CONFIRM_AUTH_CONTROLLER, $ => {
+    const userId = $.user.id;
 
-// вызывается после авторизации в Яндекс.Деньгах
-// токен авторизации уже хранится в user.accessToken
-function getTokenCallback (user) {
-    setMenu(user.id,
-        'Вы успешно прошли авторизацию в Яндекс.Деньгах!' +
-        'Теперь можете воспользоваться платными функциями.');
+    auth.findOne({user: userId})
+        .then(doc => {
+            if (doc) {
+                console.log(`Found temp code for user ${userId}. Trying to generate access token`);
+                yamoney.getToken(config.yandex_money.clientId, doc.code, config.yandex_money.redirectURI,
+                    (err, data) => {
+                        if (err) {
+                            console.log(`Error while get access token: ${err.message}`);
+                            return
+                        }
 
-    if (user.waitedPhone) {
-        var phone = user.waitedPhone.phone;
-        var amount = user.waitedPhone.amount;
-        yamoney.payPhone(phone, amount, user.accessToken, function (err) {
-            if (err) {
-                console.log(err);
-                return;
+                        users.findOne({user: userId}).then(userRecord => {
+                            if (userRecord) {
+                                users.update({user: userId}, { $set: {token: data.access_token} }).then(() => {
+                                    console.log(`User ${userId} updated access token`);
+                                    $.sendMessage('Вы успешно обновили токен авторизации Яндекс.Денег!');
+                                });
+                            } else {
+                                users.insert({user: userId, token: data.access_token}).then(() => {
+                                    console.log(`User ${userId} obtained new access token`);
+                                    $.sendMessage('Вы успешно прошли авторизацию в Яндекс.Деньгах!' +
+                                        'Теперь можете воспользоваться платными функциями.');
+                                });
+                            }
+                        })
+                    });
+            } else {
+                $.runMenu({
+                    message: 'Не удалось подтвердить авторизацию =(.' +
+                    'Перейдите по ссылке еще раз и попробуйте снова',
+                    'Подтвердить авторизацию': () => { $.routeTo('/confirmAuth') },
+                    'Отмена': () => $.sendMessage('Без авторизации вы не сможете осуществлять платежи. ' +
+                        'Если возникли проблемы, обратитесь в службу Яндекс.Деньги или к моему создателю.')
+                })
             }
-            user.waitedPhone = null;
-            tg.sendMessage(user.id, util.format('Мы с вами пополнили баланс телефона +%s на %sруб.! Командная работа!', phone, amount));
         });
-    }
-
-    // yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
-    //     function (err) {
-    //         if (err) return tg.sendMessage(user.id, 'К сожалению, при платеже возникла ошибка :(');
-    //         user.PSB.sum = null;
-    //         user.PSB.countsDay = null;
-    //         user.PSB.countsNight = null;
-    //         tg.sendMessage(user.id, 'Оплата счета за электричество прошла успешно! Так держать!');
-    //     }
-    // );
-}
-
-tg.controller('phoneInfoController', function($) {
-    var messages = [
-        'Сейчас я пополню баланс абсолютно любого мобильного, который вы дадите (если он российский 🇷🇺). Просто отправьте мне контакт или номер телефона в виде +7...',
-        'Умею оплату мобильной связи, люблю, практикую. На какой номер класть 😏?',
-        'Пришлите мне контакт из адресной книги или номер телефона (начинающийся с +7) для пополнения баланса мобильного'
-    ];
-    $.sendMessage(funcs.getRandomElem(messages));
 });
 
-function payPhone($) {
-    var phone = '';
-    if ($.message.contact) {
-        phone = $.message.contact.phone_number;
-    } else {
-        var text = ($.message.text || '').replace(/[^0-9]/g, '');
-        if (text.length === 11) phone = text;
-    }
 
-    if (phone == '')
-        return $.sendMessage('У меня не получилось распознать введенный номер телефона. Попробуйте еще раз!');
-
-    $.sendMessage(util.format('Всё уже готово, чтобы пополнить баланс номера +%s. Сколько нужно положить на счет телефона?', phone), {
-        reply_markup: JSON.stringify({
-            hide_keyboard: true,
-            resize_keyboard: true,
-            one_time_keyboard: true,
-            keyboard: [ ['Отмена'] ]
-        })
+tg.controller(CELLPHONE_CONTROLLER, $ => {
+    let message =
+        'Сейчас я пополню баланс абсолютно любого мобильного, который вы дадите (если он российский 🇷🇺).' +
+        'Просто отправьте мне контакт из телефонной книги или номер телефона в виде XXXXXXX (без +7)';
+    $.sendMessage(message);
+    $.waitForRequest($ => {
+        let phone = null;
+        if ($.message.contact) {
+            phone = $.message.contact.phone_number;
+        } else {
+            let text = ($.message.text || '').replace(/[^0-9]/g, '');
+            if (text.length === 11) phone = text;
+        }
+        if (phone) {
+            $.sendMessage(`Всё уже готово, чтобы пополнить баланс номера +7${phone}. Сколько нужно положить на счет телефона (не больше 500)?`);
+            $.waitForRequest($ => {
+                const amount = parseInt($.message.text);
+                if (amount && amount < 100) {
+                    getTokenFromDB($.user.id.toString()).then(token => {
+                        yamoney.payPhone(phone, amount, token, err => {
+                            if (err) {
+                                console.log(err);
+                                $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
+                            } else {
+                                $.sendMessage(`Мы с вами пополнили баланс телефона +7${phone} на ${amount} р.! Командная работа!`);
+                            }
+                        });
+                    });
+                } else {
+                    $.sendMessage('Указана неверная сумма')
+                }
+            })
+        } else {
+            $.sendMessage('У меня не получилось распознать введенный номер телефона. Попробуйте еще раз!');
+        }
     });
-    $.waitForRequest(function($) {
-        if (!$.message.text) return $.routeTo('other');
-        if (isNaN(parseFloat($.message.text))) return setMenu($,
-            'Счет мобильного телефона пополнен не будет. Может сделаете что-нибудь еще?');
-
-        users.get($.user.id, $.user, function (err, user) {
-            if (err) return sendError($, err);
-            var amount = parseFloat($.message.text);
-
-            if (!user.accessToken) {
-                user.waitedPhone = {
-                    phone: phone,
-                    amount: amount
-                };
-                $.sendMessage('Для оплаты телефона вам понадобиться авторизоваться в Яндекс.Деньгах.');
-                return $.routeTo('/auth');
-            }
-
-            yamoney.payPhone(phone, amount, user.accessToken, function (err) {
-                if (err) return $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
-                user.waitedPhone = null;
-                $.sendMessage(util.format('Мы с вами пополнили баланс телефона +%s на %sруб.! Командная работа!', phone, amount));
-            });
-        });
-    });
-}
-//оплата электричества
-tg.controller('electroController', function ($) {
-    payPSB($);
 });
 
-function payPSB($, text) {
-    var user = {};
+
+tg.controller(ELECTRO_CONTROLLER, $ => {
     async.waterfall([
         function (callback) {
             users.get($.user.id, $.user, callback);
@@ -252,7 +213,7 @@ function payPSB($, text) {
                 return callback(null);
             });
         }
-            //counters
+        //counters
     ], function (err) {
         if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за свет. Но мы можем заплатить за что-нибудь еще!');
         if (err) return sendError($, err);
@@ -261,7 +222,7 @@ function payPSB($, text) {
             $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
             return $.routeTo('/auth');
         }
-        
+
 
         yamoney.payPSB(user.PSB.abNum, user.PSB.sum, user.fullName, user.PSB.countsDay, user.PSB.countsNight, user.accessToken,
             function (err) {
@@ -269,74 +230,4 @@ function payPSB($, text) {
                 $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
             });
     });
-}
-
-tg.controller('kvarplataController', function ($) {
-    payKvarplata($);
 });
-
-function payKvarplata($, text) {
-    var user = {};
-    async.waterfall([
-        function (callback) {
-            users.get($.user.id, $.user, callback);
-        },
-        function (auser, callback) {
-            user = auser;
-            if (!user.Kvarplata) user.Kvarplata = {};
-            if (text) {
-                try {
-                    user.Kvarplata.abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'PersAcc')[0][1];
-                } catch (e) {
-                    user.Kvarplata.abNum = '';
-                }
-            }
-            callback(null);
-        },
-        function (callback) {
-            if (user.Kvarplata.abNum) return callback(null);
-            $.sendMessage('Введите номер вашего абонентского номера для оплаты счетов по кварплате, или отправьте мне фотографию QR-кода с квитанции.');
-        },
-        function (callback) {
-            if (user.fullName) return callback(null);
-            $.sendMessage('Введите ваши Ф.И.О. для указания в квитанции на оплату:');
-            $.waitForRequest(function ($) {
-                user.fullName = $.message.text;
-                return callback(null);
-            });
-        }, //First Name, Second Name, patronymic
-        function (callback) {
-            $.sendMessage('Сколько денег вы хотите потратить на оплату кварплаты?');
-            $.waitForRequest(function ($) {
-                user.Kvarplata.sum = $.message.text;
-                return callback(null);
-            });
-        }//sum
-        /*
-        function (callback) {
-            $.sendMessage('Введите данные счетчиков за холодную и горячую воду, но можете не вводить :) ).');
-            $.waitForRequest(function ($) {
-                var counts = $.message.text.split(' ');
-                user.Kvarplata.countsCold = counts[0];
-                user.Kvarplata.countsHot =  counts[1];
-                return callback(null);
-            });
-        }
-        */
-        //counters
-    ], function (err) {
-        if (err && (err.message == 'cancelled')) return setMenu($, 'Не будем сейчас платить за кварплату. Но мы можем заплатить за что-нибудь еще!');
-        if (err) return sendError($, err);
-
-        if (!user.accessToken) {
-            $.sendMessage('Перед оплатой квитанции вам нужно будет авторизоваться в Яндекс.Деньгах.');
-            return $.routeTo('/auth');
-        }
-        yamoney.payKvarplata(user.Kvarplata.abNum, user.Kvarplata.sum,  user.accessToken,
-            function (err) {
-                console.log(err);
-                if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-                $.sendMessage('Оплата счета за кварплату прошла успешно! Так держать!');
-            });
-    });
-}

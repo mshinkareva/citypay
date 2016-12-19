@@ -1,10 +1,14 @@
-var Connection = require('./connection');
-var util = require('util');
-var config = require('../config.js').mongo;
+import mongo from 'mongodb'
+import monk from 'monk'
+import config from '../config'
 
-var connection = new Connection(util.format('mongodb://%s:%s/%s', config.host, config.port, config.db), {
-    autoClose: true,
-    closeTimeout: 10
-});
+const db = monk(`${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`);
 
-module.exports = connection;
+export const users = db.get('users');
+export const auth = db.get('auth');
+
+export function getTokenFromDB(userId) {
+    return users.findOne({user: userId}).then(doc => {
+        return (doc) ? doc.token : null
+    });
+}
