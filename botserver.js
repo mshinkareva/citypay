@@ -3,10 +3,10 @@ import async from 'async';
 import config from './config'
 import { users, auth, getTokenFromDB} from './models'
 import * as yamoney from './yamoney';
-
-var tg = require('telegram-node-bot')(config.bot_token);
 import { recognizeQR } from './utils/funcs'
 
+const tg = require('telegram-node-bot')(config.bot_token);
+console.log('Citypay started!!!');
 
 //  For downloaded pictures
 if (!fs.existsSync('./temp')) {
@@ -39,7 +39,6 @@ tg.router
     .when(electroChoices, ELECTRO_CONTROLLER)
     .when(cellChoices, CELLPHONE_CONTROLLER)
     .otherwise(DEFAULT_CONTROLLER);
-
 
 tg.controller(ABOUT_CONTROLLER, $ => {
     const aboutBot =
