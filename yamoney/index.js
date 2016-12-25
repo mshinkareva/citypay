@@ -4,6 +4,7 @@ var request = require('request');
 
 var yandexMoney = require("yandex-money-sdk");
 import config from '../config';
+import  { getRandomInt } from '../utils/funcs'
 
 
 export function getAuthURI(userId) {
@@ -41,6 +42,7 @@ function pay(token, params, cb) {
         },
         function (data) {
             var callback = arguments[arguments.length - 1];
+            console.log(data.status);
             if (data.status !== 'success') {
 
                 if (data.error === 'not_enough_funds') {
@@ -58,7 +60,7 @@ function pay(token, params, cb) {
 
 
 export function payPhone(number, amount, token, cb) {
-    var _number = number.replace(/[^0-9]/g,'');
+    var _number = number.replace(/[^0-9]/g, '');
     pay(token, {
         pattern_id: 'phone-topup',
         'phone-number': _number,
@@ -73,7 +75,7 @@ export function payPSB(abNum, sum, fio, countsDay, countsNight, token, cb) {
             var time = new Date();
             var fields = {
                 ErrorTemplate: "ym2xmlerror",
-                FormComment: "Петроэлектросбыт",
+                FormComment: "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ",
                 ShowCaseID: "7",
                 SuccessTemplate: "ym2xmlsuccess",
                 fio: fio,
@@ -81,10 +83,10 @@ export function payPSB(abNum, sum, fio, countsDay, countsNight, token, cb) {
                 rapida_param1: abNum,
                 rapida_param4: countsDay,
                 rapida_param5: countsNight,
-                rnd: funcs.getRandomInt(99240000, 99249999),
+                rnd: getRandomInt(99240000, 99249999),
                 scid: "5670",
                 secureparam5: "5",
-                shn: "Петроэлектросбыт",
+                shn: "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ",
                 sum: parseFloat(sum)+30,
                 targetcurrency: "643",
                 'try-payment': "true",

@@ -1,5 +1,5 @@
-var fs = require('fs');
-var async = require('async');
+import fs from 'fs'
+import async from 'async';
 
 
 function download(url, dest, cb) {
@@ -26,15 +26,16 @@ function getBiggestImage(tg, images, cb) {
 }
 
 
-if (!fs.existsSync('./temp')) {
-    fs.mkdirSync('./temp');
+export function getRandomInt(min, max) {
+  return Math.random() * (max - min) + min;
 }
 
-function recognizeQR(tg, $, cb) {
-    if (!$.message.photo) return cb(new Error('photo not found'));
+
+export function recognizeQR(tg, photo, cb) {
+    if (!photo) return cb(new Error('photo not found'));
     async.waterfall([
         function (callback) {
-            getBiggestImage(tg, $.message.photo, callback);
+            getBiggestImage(tg, photo, callback);
         },
         function (result, callback) {
             var url = require('util').format('https://api.telegram.org/file/bot%s/%s',
@@ -54,7 +55,3 @@ function recognizeQR(tg, $, cb) {
         }
     ], cb);
 }
-
-module.exports = {
-    recognizeQR: recognizeQR
-};
