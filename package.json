@@ -4,13 +4,16 @@
   "description": "A Telegram bot for paying house bills.",
   "main": "botserver.js",
   "scripts": {
-    "start": "node botserver.js",
+    "start": "babel-node --presets es2015 botserver.js",
     "redirect_app": "node yamoney/redirectURI.js"
   },
   "author": "topa <paycitybot@tomsha.ru>",
   "dependencies": {
     "async": "^1.5.2",
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
     "deepcopy": "^0.6.1",
+    "express": "^4.14.0",
     "iconv-lite": "^0.4.13",
     "mongodb": "^2.1.7",
     "request": "^2.69.0",
