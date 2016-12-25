@@ -1,11 +1,11 @@
 {
   "name": "PayCityBot",
-  "version": "0.0.1",
+  "version": "0.5",
   "description": "A Telegram bot for paying house bills.",
   "main": "botserver.js",
   "scripts": {
     "start": "babel-node --presets es2015 botserver.js",
-    "redirect_app": "node yamoney/redirectURI.js"
+    "redirect_app": "babel-node --presets es2015 redirectURI.js"
   },
   "author": "topa <paycitybot@tomsha.ru>",
   "dependencies": {
@@ -16,6 +16,7 @@
     "express": "^4.14.0",
     "iconv-lite": "^0.4.13",
     "mongodb": "^2.1.7",
+    "monk": "^3.1.3",
     "request": "^2.69.0",
     "telegram-node-bot": "^2.0.5",
     "yandex-money-sdk": "^0.1.6"
