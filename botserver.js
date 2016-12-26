@@ -77,7 +77,7 @@ tg.controller(DEFAULT_CONTROLLER, $ => {
             } else {
                 if (($.message.contact) || ($.message.text && ($.message.text.startsWith('+7')))) {
                     let phone = parsePhoneNumber($.message);
-                    if (phone) payPhone($, phone);
+                    if (phone) return payPhone($, phone);
                 }
 
                 if ($.message.photo) {
@@ -194,6 +194,7 @@ function payPhone($, phone) {
             getTokenFromDB($.user.id).then(token => {
                 yamoney.payPhone(phone, amount, token, err => {
                     if (err) {
+                        console.log(err)
                         $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
                     } else {
                         $.sendMessage(`Мы с вами пополнили баланс телефона ${phone} на ${amount} р.! Командная работа!`);
