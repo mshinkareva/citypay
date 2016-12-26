@@ -127,6 +127,7 @@ tg.controller(CONFIRM_AUTH_CONTROLLER, $ => {
         .then(doc => {
             if (doc) {
                 console.log(`Found temp code for user ${userId}. Trying to generate access token`);
+                console.log(doc)
                 yamoney.getToken(config.yandex_money.clientId, doc.code, config.yandex_money.redirectURI,
                     (err, data) => {
                         if (err) {
