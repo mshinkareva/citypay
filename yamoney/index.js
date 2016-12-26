@@ -38,7 +38,6 @@ function pay(token, params, cb) {
 
     async.waterfall([
         function (callback) {
-            console.log('Start request');
             console.log(params);
             api.requestPayment(params, callback);
         },
