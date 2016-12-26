@@ -27,7 +27,7 @@ export function getToken(clientId, code, redirectURI, callback) {
                 "grant_type": "authorization_code"
             }
         }, (err, httpResponse, body) => {
-            console.log(httpResponse);
+            console.log(err);
             console.log(body);
             callback(err, JSON.parse(body))
         }
