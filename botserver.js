@@ -194,7 +194,7 @@ function payPhone($, phone) {
             getTokenFromDB($.user.id).then(token => {
                 yamoney.payPhone(phone, amount, token, err => {
                     if (err) {
-                        console.log(err)
+                        console.log(err);
                         $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
                     } else {
                         $.sendMessage(`Мы с вами пополнили баланс телефона ${phone} на ${amount} р.! Командная работа!`);

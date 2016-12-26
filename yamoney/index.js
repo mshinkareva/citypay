@@ -41,6 +41,7 @@ function pay(token, params, cb) {
             api.requestPayment(params, callback);
         },
         function (data) {
+            console.log(data);
             var callback = arguments[arguments.length - 1];
             console.log(data.status);
             if (data.status !== 'success') {
