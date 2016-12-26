@@ -5,7 +5,10 @@ import { users, auth, getTokenFromDB} from './models'
 import * as yamoney from './yamoney';
 import { recognizeQR } from './utils/funcs'
 
-const tg = require('telegram-node-bot')(config.bot_token);
+const tg = require('telegram-node-bot')(config.bot_token, {
+    localization: [require('./localization/EN.json')]
+});
+
 console.log('Citypay started!!!');
 
 //  For downloaded pictures
@@ -41,6 +44,7 @@ tg.router
     .otherwise(DEFAULT_CONTROLLER);
 
 tg.controller(ABOUT_CONTROLLER, $ => {
+    console.log(tg._localization);
     const aboutBot =
         `Привет, я - бот для оплаты коммунальных платежей. Я умею платить за свет. Несу свет людям, так сказать ☀. И за телефон умею. Меня сделали во время хакатона Яндекс.Денег.`;
     $.sendMessage(aboutBot);
