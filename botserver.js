@@ -4,10 +4,17 @@ import config from './config'
 import { users, auth, getTokenFromDB} from './models'
 import * as yamoney from './yamoney';
 import { recognizeQR } from './utils/funcs'
+var Telegram = require('telegram-node-bot');
 
 const tg = require('telegram-node-bot')(config.bot_token, {
     localization: [require('./localization/EN.json')]
 });
+
+//    "telegram-node-bot": "^2.0.5",
+
+//const tg = new Telegram.Telegram(config.bot_token, {
+//    localization: [require('./localization/EN.json')]
+//});
 
 console.log('Citypay started!!!');
 
@@ -44,7 +51,7 @@ tg.router
     .otherwise(DEFAULT_CONTROLLER);
 
 tg.controller(ABOUT_CONTROLLER, $ => {
-    console.log(tg._localization);
+    console.log(tg);
     const aboutBot =
         `Привет, я - бот для оплаты коммунальных платежей. Я умею платить за свет. Несу свет людям, так сказать ☀. И за телефон умею. Меня сделали во время хакатона Яндекс.Денег.`;
     $.sendMessage(aboutBot);
@@ -127,15 +134,12 @@ tg.controller(CONFIRM_AUTH_CONTROLLER, $ => {
         .then(doc => {
             if (doc) {
                 console.log(`Found temp code for user ${userId}. Trying to generate access token`);
-                console.log(doc)
                 yamoney.getToken(config.yandex_money.clientId, doc.code, config.yandex_money.redirectURI,
                     (err, data) => {
-                        if (err) {
+                        if (err || data.access_token == '') {
                             console.log(`Error while get access token: ${err.message}`);
                             return
                         }
-
-                        console.log(data)
 
                         users.findOne({user: userId}).then(userRecord => {
                             if (userRecord) {
