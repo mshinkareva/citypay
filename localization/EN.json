@@ -1,6 +1,27 @@
 {
   "lang": "En",
   "phrases": {
-    "aboutText": "Hello! I am a telegram CityPay bot! I was developed during Yandex.Money hacaton challenge."
+    "aboutText": "Hello! I am a telegram CityPay bot! I was developed during Yandex.Money hackathon challenge.",
+    "successfulAuthorizationText": "You are authorized in Yandex.Money. What do you want to pay for?",
+    "notAuthorizedText": "",
+    "invalidPhotoText": "",
+    "cannotPayForOrganizationText": "",
+    "failedToRecognizeCommandText": "Failed to recognize command =(.  ",
+    "successfullyUpdatedTokenText": "",
+    "authorizationCompletedText": "",
+    "failedToConfirmAuthorizationText": "",
+    "authorizationWarningText": "",
+    "payPhoneStartText": "",
+    "failedToRecognizePhoneText": "",
+    "preparePayPhoneText": "",
+    "failedToPayPhoneText": "",
+    "successfullyPayedPhoneText": "",
+    "invalidAmountText": "",
+    "credentialsDialogText": "",
+    "howMuchFundsToSpendText": "",
+    "lightCountersDialogText": "",
+    "paymentErrorText": "",
+    "electricityPaymentSuccessText": "",
+    "yamoneyAuthorizationCompletedText": ""
   }
 }
