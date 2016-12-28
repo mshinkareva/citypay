@@ -1,6 +1,6 @@
 import express from 'express';
 import { auth } from './models';
-
+import localization from './localization/EN'
 
 const port = 3001;
 const app = express();
@@ -11,8 +11,7 @@ app.get('/:userId(\\d+)', (req, res) => {
 
     console.log(`User ${userId} requested authorization`);
 
-    const successAuthText = 'Вы успешно прошли авторизацию. ' +
-                            'Нажмите "ПОДТВЕРДИТЬ" в приложении Telegram (время действия временного токена - 1 минута)';
+    const successAuthText = localization.yamoneyAuthorizationCompletedText;
 
     auth.findOne({user: userId})
         .then(doc => {

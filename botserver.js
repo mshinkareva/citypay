@@ -6,17 +6,16 @@ import * as yamoney from './yamoney';
 import { recognizeQR } from './utils/funcs'
 var Telegram = require('telegram-node-bot');
 
-const tg = require('telegram-node-bot')(config.bot_token, {
-    localization: [require('./localization/EN.json')]
-});
+const tg = require('telegram-node-bot')(config.bot_token);
+import localization from './localization/EN'
+
+console.log('Citypay bot started');
 
 //    "telegram-node-bot": "^2.0.5",
 
 //const tg = new Telegram.Telegram(config.bot_token, {
 //    localization: [require('./localization/EN.json')]
 //});
-
-console.log('Citypay started!!!');
 
 //  For downloaded pictures
 if (!fs.existsSync('./temp')) {
@@ -51,9 +50,7 @@ tg.router
     .otherwise(DEFAULT_CONTROLLER);
 
 tg.controller(ABOUT_CONTROLLER, $ => {
-    console.log(tg);
-    const aboutBot =
-        `Привет, я - бот для оплаты коммунальных платежей. Я умею платить за свет. Несу свет людям, так сказать ☀. И за телефон умею. Меня сделали во время хакатона Яндекс.Денег.`;
+    const aboutBot = localization.aboutText;
     $.sendMessage(aboutBot);
 });
 
@@ -65,14 +62,14 @@ tg.controller(HELLO_CONTROLLER, $ => {
             if (doc) {
                 console.log(`User ${user_name} connected!`);
                 $.runMenu({
-                    message: `${user_name}, Вы уже успешно авторизованы ы Яндекс.Деньгах. Что хотели бы оплатить?`,
-                    'Использовать QR код': () => { $.sendMessage('Пришлите фотографию QR кода с квитанции.') },
-                    'Пополнить баланс телефона': () => { $.routeTo('/mobile') }
+                    message: `${user_name} ${localization.successfulAuthorizationText}`,
+                    [localization.useQRCodeMenuText]: () => { $.sendMessage(localization.sendQRText) },
+                    [localization.replenishBalanceMenuText]: () => { $.routeTo('/mobile') }
                 })
             } else {
-                $.runMenu({message: `Уважаемый ${user_name}, Вы можете сразу авторизоваться в Яндекс.Деньгах, чтобы потом без промедления платить за выбранные услуги.`,
-                    'Авторизация в Яндекс.Деньгах': () => { $.routeTo('/auth') },
-                    'О боте': () => { $.routeTo('/about') }
+                $.runMenu({message: localization.authorizationOfferText,
+                    [localization.authorizeMenuText]: () => { $.routeTo('/auth') },
+                    [localization.aboutMenuText]: () => { $.routeTo('/about') }
                 });
             }
         });
@@ -83,7 +80,7 @@ tg.controller(DEFAULT_CONTROLLER, $ => {
     users.findOne({user: $.user.id})
         .then(doc => {
             if (!doc) {
-                $.sendMessage('Вы не авторизованы в Яндекс.Деньгах. Чтобы продолжить работу со мной, давайте пройдем эту небольшую процедуру =)');
+                $.sendMessage(localization.notAuthorizedText);
                 $.routeTo('/start');
             } else {
                 if (($.message.contact) || ($.message.text && ($.message.text.startsWith('+7')))) {
@@ -93,23 +90,22 @@ tg.controller(DEFAULT_CONTROLLER, $ => {
 
                 if ($.message.photo) {
                     return recognizeQR(tg, $.message.photo, (err, text) => {
-                        if (err) return $.sendMessage('Фото, которое вы мне прислали, не очень-то похоже на QR-код!'+
-                            'Попробуйте, пожалуйста, сделать более чёткое и контрастное фото');
+                        if (err) return $.sendMessage(localization.cannotRecognizeQRText);
                         if (text.includes('Петроэлектросбыт')) {
                             console.log(text);
                             return payPSB($, text);
                         } else {
-                            $.sendMessage('К сожалению, я пока не умею платить в эту организацию. ' +
-                                'Но для вас я могу расшифровать этот QR-код: ' + text);
+                            $.sendMessage(localization.cannotPayForOrganizationText);
+                            $.sendMessage(text);
                         }
                     });
                 }
 
                 if ($.message.text) {
-                    $.sendMessage('Не удалось распознать команду =(. Давайте попробуем то, что я умею!');
+                    $.sendMessage(localization.failedToRecognizeCommandText);
                     $.routeTo('/start')
                 } else {
-                    $.sendMessage('Могу распознать QR код с квитанций. Пришлите фото и я попробую!')
+                    $.sendMessage(localization.canRecognizeQRText)
                 }
             }
         }
@@ -120,9 +116,8 @@ tg.controller(DEFAULT_CONTROLLER, $ => {
 tg.controller(AUTH_CONTROLLER, $ => {
     const authUrl = yamoney.getAuthURI($.user.id);
     $.runMenu({
-        message: `Для авторизации вам нужно перейти на сайт Яндекс.Денег по ссылке:\n${authUrl}\n` +
-        'Как только авторизация будет закончена, нажмите подтвердить',
-        'Подтвердить авторизацию': () => { $.routeTo('/confirmAuth') }
+        message: `${localization.authorizeYandexMoneyText}\n${authUrl}\n` + localization.endYandexMoneyAuthText,
+        [localization.confirmAuthMenuText]: () => { $.routeTo('/confirmAuth') }
     });
 });
 
@@ -145,24 +140,21 @@ tg.controller(CONFIRM_AUTH_CONTROLLER, $ => {
                             if (userRecord) {
                                 users.update({user: userId}, { $set: {token: data.access_token} }).then(() => {
                                     console.log(`User ${userId} updated access token`);
-                                    $.sendMessage('Вы успешно обновили токен авторизации Яндекс.Денег!');
+                                    $.sendMessage(localization.successfullyUpdatedTokenText);
                                 });
                             } else {
                                 users.insert({user: userId, token: data.access_token}).then(() => {
                                     console.log(`User ${userId} obtained new access token`);
-                                    $.sendMessage('Вы успешно прошли авторизацию в Яндекс.Деньгах!' +
-                                        'Теперь можете воспользоваться платными функциями.');
+                                    $.sendMessage(localization.authorizationCompletedText);
                                 });
                             }
                         })
                     });
             } else {
                 $.runMenu({
-                    message: 'Не удалось подтвердить авторизацию =(.' +
-                    'Перейдите по ссылке еще раз и попробуйте снова',
-                    'Подтвердить авторизацию': () => { $.routeTo('/confirmAuth') },
-                    'Отмена': () => $.sendMessage('Без авторизации вы не сможете осуществлять платежи. ' +
-                        'Если возникли проблемы, обратитесь в службу Яндекс.Деньги или к моему создателю.')
+                    message: localization.failedToConfirmAuthorizationText,
+                    [localization.confirmAuthMenuText]: () => { $.routeTo('/confirmAuth') },
+                    [localization.cancelMenuText]: () => $.sendMessage(localization.authorizationWarningText)
                 })
             }
         });
@@ -170,16 +162,14 @@ tg.controller(CONFIRM_AUTH_CONTROLLER, $ => {
 
 
 tg.controller(CELLPHONE_CONTROLLER, $ => {
-    let message =
-        'Сейчас я пополню баланс абсолютно любого мобильного, который вы дадите (если он российский 🇷🇺).' +
-        'Просто отправьте мне контакт из телефонной книги или номер телефона в виде XXXXXXX (без +7)';
+    const message = localization.payPhoneStartText;
     $.sendMessage(message);
     $.waitForRequest($ => {
         let phone = parsePhoneNumber($.message);
         if (phone) {
             payPhone($, phone);
         } else {
-            $.sendMessage('У меня не получилось распознать введенный номер телефона. Попробуйте еще раз!');
+            $.sendMessage(localization.failedToRecognizePhoneText);
         }
     });
 });
@@ -198,7 +188,7 @@ function parsePhoneNumber(message) {
 
 
 function payPhone($, phone) {
-    $.sendMessage(`Всё уже готово, чтобы пополнить баланс номера ${phone}. Сколько нужно положить на счет телефона (не больше 500 р.)?`);
+    $.sendMessage(`${localization.preparePayPhoneText} ${phone}?`);
     $.waitForRequest($ => {
         const amount = parseInt($.message.text);
         if (amount && amount < 100) {
@@ -206,14 +196,14 @@ function payPhone($, phone) {
                 yamoney.payPhone(phone, amount, token, err => {
                     if (err) {
                         console.log(err);
-                        $.sendMessage('К сожалению, из-за ошибки у меня не получилось пополнить баланс вашего телефона');
+                        $.sendMessage(localization.failedToPayPhoneText);
                     } else {
-                        $.sendMessage(`Мы с вами пополнили баланс телефона ${phone} на ${amount} р.! Командная работа!`);
+                        $.sendMessage(localization.successfullyPayedPhoneText);
                     }
                 });
             });
         } else {
-            $.sendMessage('Указана неверная сумма.')
+            $.sendMessage(localization.invalidAmountText)
         }
     })
 }
@@ -221,14 +211,14 @@ function payPhone($, phone) {
 
 function payPSB($, text) {
     const abNum = text.split('|').map((x) => x.split('=')).filter((x) => x[0] == 'Persacc')[0][1];
-    $.sendMessage('Введите ваши Ф.И.О. для указания в квитанции на оплату:');
+    $.sendMessage(localization.credentialsDialogText);
     $.waitForRequest($ => {
         const fullName = $.message.text;
-        $.sendMessage('Сколько денег вы хотите потратить на оплату электричества?');
+        $.sendMessage(localization.howMuchFundsToSpendText);
         $.waitForRequest($ => {
             const sum = parseInt($.message.text);
             if (sum) {
-                $.sendMessage('Введите данные счетчиков за день и ночь через пробел (если счетчик однотарифный, ночной можете не вводить :) ).');
+                $.sendMessage(localization.lightCountersDialogText);
                 $.waitForRequest($ => {
                     const counts = $.message.text.split(' ');
                     const countsDay = counts[0];
@@ -238,13 +228,13 @@ function payPSB($, text) {
                         yamoney.payPSB(abNum, sum, fullName, countsDay, countsNight, token,
                             (err) => {
                                 console.log(err);
-                                if (err) return $.sendMessage('К сожалению, при платеже возникла ошибка :(');
-                                $.sendMessage('Оплата счета за электричество прошла успешно! Так держать!');
+                                if (err) return $.sendMessage(localization.paymentErrorText);
+                                $.sendMessage(localization.electricityPaymentSuccessText);
                             });
                     })
                 });
             } else {
-                $.sendMessage('Указана неверная сумма');
+                $.sendMessage(localization.invalidAmountText);
             }
         });
     });
